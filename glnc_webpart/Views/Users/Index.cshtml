@@ -1,0 +1,354 @@
+@model List<glnc_webpart.Models.User>
+@{
+    ViewData["Title"] = "Users Management";
+}
+
+<div class="page-container">
+    <div class="page-header">
+        <h1>Users Management</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            <i class="bi bi-plus-circle"></i> 
+        </button>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-striped table-hover table-centered" id="usersTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@user.Name</td>
+                        <td>@(user.Role == 1 ? "Driver" : "Admin")</td>
+                        <td>
+                            <button class="btn btn-icon btn-edit" onclick="editUser(@user.Id)" title="Edit User">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-icon btn-delete" onclick="deleteUser(@user.Id, @Html.Raw(Json.Serialize(user.Name)))" title="Delete User">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createUserForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="Name" required maxlength="30" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password (5 digits)</label>
+                        <input type="text" class="form-control" name="Password" required maxlength="5" pattern="[0-9]{5}" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" name="Role" required>
+                            <option value="1">Driver</option>
+                            <option value="2">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editUserForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="editUserId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="Name" id="editUserName" required maxlength="30" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password (5 digits - leave empty to keep current)</label>
+                        <input type="text" class="form-control" name="Password" id="editUserPassword" maxlength="5" pattern="[0-9]{5}" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" name="Role" id="editUserRole" required>
+                            <option value="1">Driver</option>
+                            <option value="2">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Confirmation Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+                <p class="text-muted mb-0"><strong>User Name:</strong> <span id="deleteUserName"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Toast Notification Function
+        function showToast(message, type = 'success') {
+            const toastContainer = $('#toastContainer');
+            const toastId = 'toast-' + Date.now();
+            
+            // Define toast configuration based on type
+            const toastConfig = {
+                success: {
+                    bgClass: 'bg-success',
+                    icon: 'bi-check-circle-fill',
+                    title: 'Success'
+                },
+                error: {
+                    bgClass: 'bg-danger',
+                    icon: 'bi-x-circle-fill',
+                    title: 'Error'
+                },
+                warning: {
+                    bgClass: 'bg-warning',
+                    icon: 'bi-exclamation-triangle-fill',
+                    title: 'Warning'
+                },
+                info: {
+                    bgClass: 'bg-info',
+                    icon: 'bi-info-circle-fill',
+                    title: 'Info'
+                }
+            };
+            
+            const config = toastConfig[type] || toastConfig.success;
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-white ${config.bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="bi ${config.icon} me-2"></i>
+                            <strong>${config.title}:</strong> ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.append(toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: 5000
+            });
+            toast.show();
+            
+            // Remove toast element after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+
+        // Get antiforgery token
+        function getToken() {
+            return $('input[name="__RequestVerificationToken"]').val();
+        }
+
+        // Create User
+        $('#createUserForm').on('submit', function(e) {
+            e.preventDefault();
+            const formData = $(this).serialize();
+            $.ajax({
+                url: '@Url.Action("Create", "Users")',
+                type: 'POST',
+                data: formData,
+                headers: {
+                    'RequestVerificationToken': getToken()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#createUserModal').modal('hide');
+                        $('#createUserForm')[0].reset();
+                        showToast('User created successfully!', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(response.message || 'Failed to create user', 'error');
+                    }
+                },
+                error: function() {
+                    showToast('An error occurred. Please try again.', 'error');
+                }
+            });
+        });
+
+        // Store user data for modal shown event
+        let currentEditUser = null;
+
+        // Edit User
+        function editUser(id) {
+            $.get('@Url.Action("Get", "Users")', { id: id }, function(response) {
+                if (response.success) {
+                    const user = response.data;
+                    currentEditUser = user;
+                    
+                    $('#editUserId').val(user.id || user.Id);
+                    $('#editUserName').val(user.name || user.Name);
+                    $('#editUserPassword').val('');
+                    
+                    // Show modal - role will be set in the shown event handler
+                    $('#editUserModal').modal('show');
+                } else {
+                    showToast('Failed to load user data', 'error');
+                }
+            }).fail(function() {
+                showToast('An error occurred while loading user data', 'error');
+            });
+        }
+
+        // Handle modal shown event to set role value
+        $('#editUserModal').on('shown.bs.modal', function() {
+            if (currentEditUser) {
+                // Get role value - handle both camelCase and PascalCase
+                const roleValue = currentEditUser.role || currentEditUser.Role;
+                // Convert to string to match select option values ("1" or "2")
+                const roleString = String(roleValue);
+                
+                // Set the role dropdown value
+                $('#editUserRole').val(roleString);
+                
+                // Clear the stored user data
+                currentEditUser = null;
+            }
+        });
+
+        $('#editUserForm').on('submit', function(e) {
+            e.preventDefault();
+            const formData = $(this).serialize();
+            $.ajax({
+                url: '@Url.Action("Edit", "Users")',
+                type: 'POST',
+                data: formData,
+                headers: {
+                    'RequestVerificationToken': getToken()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#editUserModal').modal('hide');
+                        showToast('User updated successfully!', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(response.message || 'Failed to update user', 'error');
+                    }
+                },
+                error: function() {
+                    showToast('An error occurred. Please try again.', 'error');
+                }
+            });
+        });
+
+        // Store user ID for deletion
+        let userIdToDelete = null;
+
+        // Delete User - Show confirmation modal
+        function deleteUser(id, userName) {
+            userIdToDelete = id;
+            $('#deleteUserName').text(userName);
+            $('#deleteUserModal').modal('show');
+        }
+
+        // Confirm Delete - Execute deletion
+        $('#confirmDeleteBtn').on('click', function() {
+            if (userIdToDelete) {
+                $.ajax({
+                    url: '@Url.Action("Delete", "Users")',
+                    type: 'POST',
+                    data: { 
+                        id: userIdToDelete,
+                        __RequestVerificationToken: getToken()
+                    },
+                    success: function(response) {
+                        $('#deleteUserModal').modal('hide');
+                        if (response.success) {
+                            showToast('User deleted successfully!', 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showToast(response.message || 'Failed to delete user', 'error');
+                        }
+                        userIdToDelete = null;
+                    },
+                    error: function() {
+                        $('#deleteUserModal').modal('hide');
+                        showToast('An error occurred. Please try again.', 'error');
+                        userIdToDelete = null;
+                    }
+                });
+            }
+        });
+
+        // Clear stored user ID when modal is closed
+        $('#deleteUserModal').on('hidden.bs.modal', function() {
+            userIdToDelete = null;
+        });
+
+        // Password input - only numbers
+        $('input[name="Password"]').on('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Initialize pagination
+        $(document).ready(function() {
+            initPagination('#usersTable', 10);
+        });
+    </script>
+}
+

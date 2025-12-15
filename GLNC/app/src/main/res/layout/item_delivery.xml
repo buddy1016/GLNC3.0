@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    android:background="@android:color/white"
+    android:id="@+id/delivery_card">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@android:color/white">
+
+        <!-- Left border indicator -->
+        <View
+            android:id="@+id/left_border"
+            android:layout_width="4dp"
+            android:layout_height="match_parent"
+            android:background="@color/purple_500"
+            android:layout_marginEnd="12dp" />
+
+        <!-- Left side: Time and Client -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/delivery_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="14:30"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/purple_500"
+                android:layout_marginBottom="8dp"
+                tools:text="14:30" />
+
+            <TextView
+                android:id="@+id/delivery_client"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ABC Company"
+                android:textSize="16sp"
+                android:textColor="#424242"
+                tools:text="ABC Company" />
+        </LinearLayout>
+
+        <!-- Right side: Status Badge -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="end"
+            android:layout_gravity="end"
+            android:minWidth="100dp">
+
+            <TextView
+                android:id="@+id/status_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="IN PROGRESS"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:padding="4dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:background="@drawable/status_badge_background"
+                tools:text="IN PROGRESS" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

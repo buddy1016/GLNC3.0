@@ -1,0 +1,335 @@
+@model List<glnc_webpart.Models.Supplier>
+@{
+    ViewData["Title"] = "Supplier Management";
+}
+
+<div class="page-container">
+    <div class="page-header">
+        <h1>Supplier Management</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSupplierModal">
+            <i class="bi bi-plus-circle"></i> 
+        </button>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-striped table-hover table-centered">
+            <thead>
+                <tr>
+                    <th>Supplier Name</th>
+                    <th>Email</th>
+                    <th>Check</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var supplier in Model)
+                {
+                    <tr>
+                        <td>@supplier.SupplierName</td>
+                        <td>@supplier.Mail</td>
+                        <td>
+                            @if (supplier.Check)
+                            {
+                                <span class="badge bg-success">Yes</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">No</span>
+                            }
+                        </td>
+                        <td>
+                            <button class="btn btn-icon btn-edit" onclick="editSupplier(@supplier.Id)" title="Edit Supplier">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-icon btn-delete delete-supplier-btn" data-supplier-id="@supplier.Id" data-supplier-name="@supplier.SupplierName" title="Delete Supplier">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create Supplier Modal -->
+<div class="modal fade" id="createSupplierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createSupplierForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Supplier Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="SupplierName" required maxlength="30" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email(s) <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="Mail" placeholder="email1@example.com, email2@example.com" required maxlength="250" />
+                        <small class="text-muted">Add one or more emails separated by commas.</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="Check" id="createSupplierCheck" value="true">
+                            <label class="form-check-label" for="createSupplierCheck">
+                                Check
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Supplier Modal -->
+<div class="modal fade" id="editSupplierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editSupplierForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="editSupplierId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Supplier Name</label>
+                        <input type="text" class="form-control" name="SupplierName" id="editSupplierName" required maxlength="30" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email(s)</label>
+                        <input type="text" class="form-control" name="Mail" id="editSupplierMail" placeholder="email1@example.com, email2@example.com" required maxlength="250" />
+                        <small class="text-muted">Add one or more emails separated by commas.</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="Check" id="editSupplierCheck" value="true">
+                            <label class="form-check-label" for="editSupplierCheck">
+                                Check
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Supplier Confirmation Modal -->
+<div class="modal fade" id="deleteSupplierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this supplier? This action cannot be undone.</p>
+                <p class="text-muted mb-0"><strong>Supplier Name:</strong> <span id="deleteSupplierName"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteSupplierBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Toast Notification Function
+        function showToast(message, type = 'success') {
+            const toastContainer = $('#toastContainer');
+            const toastId = 'toast-' + Date.now();
+            
+            const toastConfig = {
+                success: { bgClass: 'bg-success', icon: 'bi-check-circle-fill', title: 'Success' },
+                error: { bgClass: 'bg-danger', icon: 'bi-x-circle-fill', title: 'Error' },
+                warning: { bgClass: 'bg-warning', icon: 'bi-exclamation-triangle-fill', title: 'Warning' },
+                info: { bgClass: 'bg-info', icon: 'bi-info-circle-fill', title: 'Info' }
+            };
+            
+            const config = toastConfig[type] || toastConfig.success;
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-white ${config.bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="bi ${config.icon} me-2"></i>
+                            <strong>${config.title}:</strong> ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.append(toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+
+        function getToken() {
+            return $('input[name="__RequestVerificationToken"]').val();
+        }
+
+        $('#createSupplierForm').on('submit', function(e) {
+            e.preventDefault();
+            // Handle checkbox - add hidden input if unchecked
+            if (!$('#createSupplierCheck').is(':checked')) {
+                if ($('#createSupplierCheckHidden').length === 0) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'Check',
+                        value: 'false',
+                        id: 'createSupplierCheckHidden'
+                    }).appendTo($(this));
+                }
+            } else {
+                $('#createSupplierCheckHidden').remove();
+            }
+            $.ajax({
+                url: '@Url.Action("Create", "Supplier")',
+                type: 'POST',
+                data: $(this).serialize(),
+                headers: { 'RequestVerificationToken': getToken() },
+                success: function(response) {
+                    if (response.success) {
+                        $('#createSupplierModal').modal('hide');
+                        $('#createSupplierForm')[0].reset();
+                        showToast('Supplier created successfully!', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(response.message || 'Failed to create supplier', 'error');
+                    }
+                },
+                error: function() {
+                    showToast('An error occurred. Please try again.', 'error');
+                }
+            });
+        });
+
+        function editSupplier(id) {
+            $.get('@Url.Action("Get", "Supplier")', { id: id }, function(response) {
+                if (response.success) {
+                    $('#editSupplierId').val(response.data.id);
+                    $('#editSupplierName').val(response.data.supplierName);
+                    $('#editSupplierMail').val(response.data.mail);
+                    $('#editSupplierCheck').prop('checked', response.data.check);
+                    $('#editSupplierModal').modal('show');
+                }
+            });
+        }
+
+        $('#editSupplierForm').on('submit', function(e) {
+            e.preventDefault();
+            // Handle checkbox - add hidden input if unchecked
+            if (!$('#editSupplierCheck').is(':checked')) {
+                if ($('#editSupplierCheckHidden').length === 0) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'Check',
+                        value: 'false',
+                        id: 'editSupplierCheckHidden'
+                    }).appendTo($(this));
+                }
+            } else {
+                $('#editSupplierCheckHidden').remove();
+            }
+            $.ajax({
+                url: '@Url.Action("Edit", "Supplier")',
+                type: 'POST',
+                data: $(this).serialize(),
+                headers: { 'RequestVerificationToken': getToken() },
+                success: function(response) {
+                    if (response.success) {
+                        $('#editSupplierModal').modal('hide');
+                        showToast('Supplier updated successfully!', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(response.message || 'Failed to update supplier', 'error');
+                    }
+                },
+                error: function() {
+                    showToast('An error occurred. Please try again.', 'error');
+                }
+            });
+        });
+
+        // Store supplier data for deletion
+        let supplierIdToDelete = null;
+
+        // Delete Supplier - Show confirmation modal (using data attributes)
+        $(document).on('click', '.delete-supplier-btn', function() {
+            const supplierId = $(this).data('supplier-id');
+            const supplierName = $(this).data('supplier-name');
+            supplierIdToDelete = supplierId;
+            $('#deleteSupplierName').text(supplierName);
+            $('#deleteSupplierModal').modal('show');
+        });
+
+        // Confirm Delete - Execute deletion
+        $('#confirmDeleteSupplierBtn').on('click', function() {
+            if (supplierIdToDelete) {
+                $.ajax({
+                    url: '@Url.Action("Delete", "Supplier")',
+                    type: 'POST',
+                    data: { 
+                        id: supplierIdToDelete,
+                        __RequestVerificationToken: getToken()
+                    },
+                    success: function(response) {
+                        $('#deleteSupplierModal').modal('hide');
+                        if (response.success) {
+                            showToast('Supplier deleted successfully!', 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showToast(response.message || 'Failed to delete supplier', 'error');
+                        }
+                        supplierIdToDelete = null;
+                    },
+                    error: function() {
+                        $('#deleteSupplierModal').modal('hide');
+                        showToast('An error occurred. Please try again.', 'error');
+                        supplierIdToDelete = null;
+                    }
+                });
+            }
+        });
+
+        // Clear stored supplier ID when modal is closed
+        $('#deleteSupplierModal').on('hidden.bs.modal', function() {
+            supplierIdToDelete = null;
+        });
+
+        // Initialize pagination
+        $(document).ready(function() {
+            initPagination('.table-container table', 10);
+        });
+    </script>
+}
+

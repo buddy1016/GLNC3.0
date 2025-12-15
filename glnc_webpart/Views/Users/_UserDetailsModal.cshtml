@@ -1,0 +1,9 @@
+@model glnc_webpart.Models.User
+
+<div>
+    <p><strong>ID:</strong> @Model.Id</p>
+    <p><strong>Name:</strong> @Model.Name</p>
+    <p><strong>Role:</strong> @(Model.Role == 1 ? "Driver" : "Admin")</p>
+</div>
+
+

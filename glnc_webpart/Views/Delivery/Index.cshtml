@@ -1,0 +1,460 @@
+@model List<glnc_webpart.Models.Delivery>
+@{
+    ViewData["Title"] = "Delivery Management";
+}
+
+<div class="page-container">
+    <div class="page-header">
+        <h1>Delivery Management</h1>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-striped table-hover table-centered" id="deliveryTable">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Contact</th>
+                    <th>Truck</th>
+                    <th>Date</th>
+                    <th>Accept</th>
+                    <th>Arrival</th>
+                    <th>Status</th>
+                    <th>Satisfaction</th>
+                    <th>Comment</th>
+                    <th>Supplier</th>
+                    <th>Photo</th>
+                    <th>Invoice</th>
+                    <th>Weight</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var delivery in Model)
+                {
+                    <tr>
+                        <td>@delivery.Client</td>
+                        <td>@delivery.Contacts</td>
+                        <td>@(delivery.Truck?.License ?? "N/A")</td>
+                        <td>@delivery.DateTimeAppointment.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@(delivery.DateTimeAccept?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                        <td>@(delivery.DateTimeArrival?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                        <td>
+                            @if (delivery.DateTimeArrival.HasValue)
+                            {
+                                <span class="badge bg-success">Completed</span>
+                            }
+                            else if (delivery.DateTimeAccept.HasValue)
+                            {
+                                <span class="badge bg-warning">In Progress</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Pending</span>
+                            }
+                        </td>
+                        <td>
+                            @if (delivery.SatisfactionClient.HasValue)
+                            {
+                                @delivery.SatisfactionClient
+                            }
+                            else
+                            {
+                                <text>-</text>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(delivery.Comment))
+                            {
+                                <span title="@delivery.Comment">@(delivery.Comment.Length > 30 ? delivery.Comment.Substring(0, 30) + "..." : delivery.Comment)</span>
+                            }
+                            else
+                            {
+                                <text>-</text>
+                            }
+                        </td>
+                        <td>@(delivery.Supplier?.SupplierName ?? "N/A")</td>
+                        <td>
+                            <button class="btn btn-link p-0 btn-view-invoice" 
+                                    data-delivery-id="@delivery.Id"
+                                    title="View Invoice Photo"
+                                    style="border: none; background: none; cursor: pointer;">
+                                <i class="bi bi-search" style="font-size: 1.2rem; color: #333;"></i>
+                            </button>
+                        </td>
+                        <td>@delivery.Invoice</td>
+                        <td>@delivery.Weight kg</td>
+                        <td>
+                            <button class="btn btn-icon btn-info" onclick="viewDelivery(@delivery.Id)" title="View Delivery">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-icon btn-edit" onclick="editDelivery(@delivery.Id)" title="Edit Delivery">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-icon btn-delete" 
+                                    data-delivery-id="@delivery.Id" 
+                                    data-delivery-client="@delivery.Client"
+                                    title="Delete Delivery">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Edit Delivery Modal -->
+<div class="modal fade" id="editDeliveryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Delivery</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editDeliveryForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="editDeliveryId" />
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Client</label>
+                            <input type="text" class="form-control" name="Client" id="editDeliveryClient" required maxlength="250" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Address</label>
+                            <input type="text" class="form-control" name="Address" id="editDeliveryAddress" required maxlength="250" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Contacts</label>
+                            <input type="text" class="form-control" name="Contacts" id="editDeliveryContacts" required maxlength="250" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Invoice</label>
+                            <input type="text" class="form-control" name="Invoice" id="editDeliveryInvoice" required maxlength="250" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Appointment Date</label>
+                            <input type="datetime-local" class="form-control" name="DateTimeAppointment" id="editDeliveryAppointment" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Leave Date</label>
+                            <input type="datetime-local" class="form-control" name="DateTimeLeave" id="editDeliveryLeave" required />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Supplier</label>
+                            <select class="form-select" name="SupplierId" id="editDeliverySupplier" required>
+                                @foreach (var supplier in ViewBag.Suppliers as List<glnc_webpart.Models.Supplier>)
+                                {
+                                    <option value="@supplier.Id">@supplier.SupplierName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Truck</label>
+                            <select class="form-select" name="TruckId" id="editDeliveryTruck" required>
+                                @foreach (var truck in ViewBag.Trucks as List<glnc_webpart.Models.Truck>)
+                                {
+                                    <option value="@truck.Id">@truck.License - @truck.Brand @truck.Model</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Weight</label>
+                        <input type="number" step="0.01" class="form-control" name="Weight" id="editDeliveryWeight" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comment</label>
+                        <textarea class="form-control" name="Comment" id="editDeliveryComment" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Delivery Modal -->
+<div class="modal fade" id="viewDeliveryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delivery Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="viewDeliveryContent"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoice Image Modal -->
+<div class="modal fade" id="invoiceImageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invoice Photo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="invoiceImageDisplay" src="" alt="Invoice Photo" class="img-fluid" style="max-height: 70vh; width: auto;" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteDeliveryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this delivery? This action cannot be undone.</p>
+                <p class="text-muted mb-0"><strong>Client:</strong> <span id="deleteDeliveryClient"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteDeliveryBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function getToken() {
+            return $('input[name="__RequestVerificationToken"]').val();
+        }
+
+        function viewDelivery(id) {
+            $.get('@Url.Action("Details", "Delivery")', { id: id }, function(html) {
+                $('#viewDeliveryContent').html(html);
+                $('#viewDeliveryModal').modal('show');
+            }).fail(function() {
+                showToast('An error occurred while loading delivery details', 'error');
+            });
+        }
+
+        // Handle invoice image view using event delegation
+        $(document).on('click', '.btn-view-invoice', function() {
+            const deliveryId = $(this).data('delivery-id');
+            viewInvoiceImage(deliveryId);
+        });
+
+        function viewInvoiceImage(deliveryId) {
+            // Fetch delivery details to get invoice image
+            $.get('@Url.Action("Get", "Delivery")', { id: deliveryId }, function(response) {
+                if (response.success && response.data) {
+                    const invoiceImage = response.data.invoiceImage || response.data.InvoiceImage;
+                    
+                    if (!invoiceImage || invoiceImage === '' || invoiceImage === null) {
+                        showToast('No invoice photo available for this delivery.', 'warning');
+                        return;
+                    }
+
+                    // Check if imageData is a base64 string or a URL
+                    let imageSrc = '';
+                    if (invoiceImage.startsWith('data:image')) {
+                        // Already a base64 data URL
+                        imageSrc = invoiceImage;
+                    } else if (invoiceImage.startsWith('http://') || invoiceImage.startsWith('https://')) {
+                        // It's a URL
+                        imageSrc = invoiceImage;
+                    } else {
+                        // Assume it's a base64 string without the data URL prefix
+                        imageSrc = 'data:image/png;base64,' + invoiceImage;
+                    }
+
+                    // Set the image source and show modal
+                    $('#invoiceImageDisplay').attr('src', imageSrc);
+                    $('#invoiceImageModal').modal('show');
+
+                    // Handle image load error (remove previous handlers first)
+                    $('#invoiceImageDisplay').off('error').on('error', function() {
+                        $('#invoiceImageModal').modal('hide');
+                        showToast('Failed to load invoice photo. The image may be corrupted or invalid.', 'error');
+                    });
+                } else {
+                    showToast('No invoice photo available for this delivery.', 'warning');
+                }
+            }).fail(function() {
+                showToast('An error occurred while loading the invoice photo.', 'error');
+            });
+        }
+
+        function showToast(message, type = 'success') {
+            const toastContainer = $('#toastContainer');
+            const toastId = 'toast-' + Date.now();
+            
+            // Define toast configuration based on type
+            const toastConfig = {
+                success: {
+                    bgClass: 'bg-success',
+                    icon: 'bi-check-circle-fill',
+                    title: 'Success'
+                },
+                error: {
+                    bgClass: 'bg-danger',
+                    icon: 'bi-x-circle-fill',
+                    title: 'Error'
+                },
+                warning: {
+                    bgClass: 'bg-warning',
+                    icon: 'bi-exclamation-triangle-fill',
+                    title: 'Warning'
+                },
+                info: {
+                    bgClass: 'bg-info',
+                    icon: 'bi-info-circle-fill',
+                    title: 'Info'
+                }
+            };
+            
+            const config = toastConfig[type] || toastConfig.success;
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast ${config.bgClass} text-white" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
+                    <div class="toast-header ${config.bgClass} text-white">
+                        <i class="bi ${config.icon} me-2"></i>
+                        <strong class="me-auto">${config.title}</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.append(toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            // Remove toast element after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+
+        function editDelivery(id) {
+            $.get('@Url.Action("Get", "Delivery")', { id: id }, function(response) {
+                if (response.success) {
+                    const d = response.data;
+                    $('#editDeliveryId').val(d.id);
+                    $('#editDeliveryClient').val(d.client);
+                    $('#editDeliveryAddress').val(d.address);
+                    $('#editDeliveryContacts').val(d.contacts);
+                    $('#editDeliveryInvoice').val(d.invoice);
+                    $('#editDeliveryAppointment').val(new Date(d.dateTimeAppointment).toISOString().slice(0, 16));
+                    $('#editDeliveryLeave').val(new Date(d.dateTimeLeave).toISOString().slice(0, 16));
+                    $('#editDeliverySupplier').val(d.supplierId);
+                    $('#editDeliveryTruck').val(d.truckId);
+                    $('#editDeliveryWeight').val(d.weight);
+                    $('#editDeliveryComment').val(d.comment);
+                    $('#editDeliveryModal').modal('show');
+                } else {
+                    showToast('Failed to load delivery data', 'error');
+                }
+            }).fail(function() {
+                showToast('An error occurred while loading delivery data', 'error');
+            });
+        }
+
+        $('#editDeliveryForm').on('submit', function(e) {
+            e.preventDefault();
+            const formData = $(this).serialize();
+            $.ajax({
+                url: '@Url.Action("Edit", "Delivery")',
+                type: 'POST',
+                data: formData,
+                headers: { 'RequestVerificationToken': getToken() },
+                success: function(response) {
+                    if (response.success) {
+                        $('#editDeliveryModal').modal('hide');
+                        showToast('Delivery updated successfully!', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(response.message || 'Failed to update delivery', 'error');
+                    }
+                },
+                error: function() {
+                    showToast('An error occurred. Please try again.', 'error');
+                }
+            });
+        });
+
+        // Store delivery ID for deletion
+        let deliveryIdToDelete = null;
+
+        // Delete Delivery - Show confirmation modal (using event delegation)
+        $(document).on('click', '.btn-delete[data-delivery-id]', function() {
+            const deliveryId = $(this).data('delivery-id');
+            const deliveryClient = $(this).data('delivery-client');
+            deliveryIdToDelete = deliveryId;
+            $('#deleteDeliveryClient').text(deliveryClient);
+            $('#deleteDeliveryModal').modal('show');
+        });
+
+        // Confirm Delete - Execute deletion
+        $('#confirmDeleteDeliveryBtn').on('click', function() {
+            if (deliveryIdToDelete) {
+                $.ajax({
+                    url: '@Url.Action("Delete", "Delivery")',
+                    type: 'POST',
+                    data: { 
+                        id: deliveryIdToDelete,
+                        __RequestVerificationToken: getToken()
+                    },
+                    success: function(response) {
+                        $('#deleteDeliveryModal').modal('hide');
+                        if (response.success) {
+                            showToast('Delivery deleted successfully!', 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showToast(response.message || 'Failed to delete delivery', 'error');
+                        }
+                        deliveryIdToDelete = null;
+                    },
+                    error: function() {
+                        $('#deleteDeliveryModal').modal('hide');
+                        showToast('An error occurred. Please try again.', 'error');
+                        deliveryIdToDelete = null;
+                    }
+                });
+            }
+        });
+
+        // Clear stored delivery ID when modal is closed
+        $('#deleteDeliveryModal').on('hidden.bs.modal', function() {
+            deliveryIdToDelete = null;
+        });
+
+        // Initialize pagination
+        $(document).ready(function() {
+            initPagination('#deliveryTable', 10);
+        });
+    </script>
+}
+

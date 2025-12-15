@@ -1,0 +1,95 @@
+@model List<glnc_webpart.Models.AttendanceTracking>
+@{
+    ViewData["Title"] = "Pointages (Attendance Tracking)";
+}
+
+<div class="page-container">
+    <div class="page-header">
+        <h1>Pointages - Attendance Tracking</h1>
+        <div class="d-flex gap-2">
+            <select class="form-select" id="userFilter" style="width: auto;">
+                <option value="">All Users</option>
+                @foreach (var user in ViewBag.Users as List<glnc_webpart.Models.User>)
+                {
+                    <option value="@user.Id">@user.Name</option>
+                }
+            </select>
+            <input type="date" class="form-control" id="dateFilter" style="width: auto;" />
+            <button class="btn btn-secondary" onclick="filterPointages()">Filter</button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-striped table-hover table-centered">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Time</th>
+                    <th>GPS</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var pointage in Model)
+                {
+                    <tr>
+                        <td>@(pointage.User?.Name ?? "N/A")</td>
+                        <td>@pointage.Time.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td>
+                            <i class="bi bi-geo-alt-fill" 
+                               style="color: #dc3545; font-size: 1.2rem; cursor: pointer;" 
+                               title="Lat: @pointage.Lati, Long: @pointage.Longi, Alt: @pointage.Alti"
+                               data-bs-toggle="tooltip"
+                               data-bs-placement="top"></i>
+                        </td>
+                        <td>
+                            @{
+                                int typeValue = (int)pointage.Type;
+                            }
+                            @if (typeValue == 1)
+                            {
+                                <span class="badge bg-success">Check In</span>
+                            }
+                            else if (typeValue == 2)
+                            {
+                                <span class="badge bg-danger">Check Out</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Unknown (@typeValue)</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterPointages() {
+            const userId = $('#userFilter').val();
+            const date = $('#dateFilter').val();
+            
+            if (userId) {
+                $.get('@Url.Action("GetByUser", "Pointages")', { userId: userId }, function(response) {
+                    if (response.success) {
+                    }
+                });
+            }
+        }
+
+        // Initialize pagination and tooltips
+        $(document).ready(function() {
+            initPagination('.table-container table', 10);
+            
+            // Initialize Bootstrap tooltips for GPS icons
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+}
+

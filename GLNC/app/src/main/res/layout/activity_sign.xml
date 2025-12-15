@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Instruction Text -->
+        <TextView
+            android:id="@+id/instruction_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Signer puis cliquer sur l'un des avis pour valider la livraison."
+            android:textSize="16sp"
+            android:textColor="#2196F3"
+            android:textAlignment="center"
+            android:padding="10dp"
+            android:layout_marginBottom="20dp"
+            tools:text="Signer puis cliquer sur l'un des avis pour valider la livraison." />
+
+        <!-- Camera Section -->
+        <Button
+            android:id="@+id/camera_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📷 Take Photo of Invoice"
+            android:textSize="16sp"
+            android:textColor="@android:color/white"
+            android:background="#4CAF50"
+            android:padding="15dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center" />
+
+        <ImageView
+            android:id="@+id/photo_preview"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerInside"
+            android:background="#FFFFFF"
+            android:visibility="gone"
+            android:layout_marginBottom="20dp"
+            tools:visibility="visible" />
+
+        <!-- Signature Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Signature:"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="8dp" />
+
+        <FrameLayout
+            android:id="@+id/signature_container"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:background="@drawable/signature_area_background"
+            android:layout_marginBottom="20dp">
+
+            <Button
+                android:id="@+id/clear_signature_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Clear"
+                android:textSize="12sp"
+                android:textColor="@android:color/white"
+                android:background="#F44336"
+                android:padding="8dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="10dp" />
+        </FrameLayout>
+
+        <!-- Comment Input -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Comment:"
+            android:textSize="14sp"
+            android:textColor="#333333"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/comment_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter your comment"
+            android:textSize="16sp"
+            android:background="@drawable/input_field_selector"
+            android:padding="12dp"
+            android:paddingTop="12dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="8dp"
+            android:minHeight="48dp"
+            android:layout_marginBottom="15dp"
+            android:textColorHint="#999999"
+            tools:hint="Enter your comment" />
+
+        <!-- Weight Input -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Weight:"
+            android:textSize="14sp"
+            android:textColor="#333333"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/weight_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter weight"
+            android:textSize="16sp"
+            android:inputType="numberDecimal"
+            android:background="@drawable/input_field_selector"
+            android:padding="12dp"
+            android:paddingTop="12dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="8dp"
+            android:minHeight="48dp"
+            android:layout_marginBottom="30dp"
+            android:textColorHint="#999999"
+            tools:hint="Enter weight" />
+
+        <!-- Satisfaction Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select your satisfaction level:"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:textAlignment="center"
+            android:layout_gravity="center"
+            android:layout_marginBottom="20dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="20dp">
+
+            <Button
+                android:id="@+id/happy_button"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="😊"
+                android:textSize="40sp"
+                android:background="@drawable/circular_button_background"
+                android:layout_marginEnd="30dp"
+                android:padding="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp" />
+
+            <Button
+                android:id="@+id/neutral_button"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="😐"
+                android:textSize="40sp"
+                android:background="@drawable/circular_button_neutral"
+                android:layout_marginEnd="30dp"
+                android:padding="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp" />
+
+            <Button
+                android:id="@+id/sad_button"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:text="😞"
+                android:textSize="40sp"
+                android:background="@drawable/circular_button_sad"
+                android:padding="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp" />
+        </LinearLayout>
+
+        <!-- Submit Button -->
+        <Button
+            android:id="@+id/submit_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Validate Delivery"
+            android:textSize="16sp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/submit_button_background"
+            android:padding="15dp"
+            android:enabled="false"
+            android:alpha="0.5" />
+
+    </LinearLayout>
+</ScrollView>
+

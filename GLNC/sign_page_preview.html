@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Sign Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instruction {
+            text-align: center;
+            color: #2196F3;
+            font-size: 16px;
+            font-weight: 500;
+            margin: 20px 0;
+            padding: 0 10px;
+        }
+
+        .camera-section {
+            margin-bottom: 20px;
+        }
+
+        .camera-button {
+            width: 100%;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .camera-button:hover {
+            background-color: #45a049;
+        }
+
+        .camera-button:active {
+            background-color: #3d8b40;
+        }
+
+        .camera-icon {
+            font-size: 20px;
+        }
+
+        .photo-preview {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+            border: 2px solid #ddd;
+        }
+
+        .photo-preview.show {
+            display: block;
+        }
+
+        .signature-section {
+            margin-bottom: 20px;
+        }
+
+        .signature-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .signature-area {
+            width: 100%;
+            height: 250px;
+            background-color: #ffffff;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            position: relative;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .signature-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+
+        .clear-signature {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .clear-signature:hover {
+            background-color: #da190b;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            background-color: transparent;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-bottom-color: #2196F3;
+        }
+
+        .input-field::placeholder {
+            color: #999;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 15px 0;
+        }
+
+        .satisfaction-section {
+            margin-top: 30px;
+        }
+
+        .satisfaction-label {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .satisfaction-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .satisfaction-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            transition: all 0.2s;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .satisfaction-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .satisfaction-button.selected {
+            border-color: #333;
+            transform: scale(1.15);
+        }
+
+        .satisfaction-button.happy {
+            background-color: #4CAF50;
+        }
+
+        .satisfaction-button.neutral {
+            background-color: #FFC107;
+        }
+
+        .satisfaction-button.sad {
+            background-color: #F44336;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 15px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .submit-button:hover {
+            background-color: #1976D2;
+        }
+
+        .submit-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="status-bar">
+        <div class="status-left">
+            <span>5:29</span>
+            <span>A</span>
+        </div>
+        <div class="status-right">
+            <span>📍</span>
+            <span>📶</span>
+            <span>🔋</span>
+        </div>
+    </div>
+
+    <div class="instruction">
+        Signer puis cliquer sur l'un des avis pour valider la livraison.
+    </div>
+
+    <div class="camera-section">
+        <button class="camera-button" id="cameraButton">
+            <span class="camera-icon">📷</span>
+            <span>Take Photo of Invoice</span>
+        </button>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
+        <img id="photoPreview" class="photo-preview" alt="Invoice photo">
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-label">Signature:</div>
+        <div class="signature-area">
+            <canvas class="signature-canvas" id="signatureCanvas"></canvas>
+            <button class="clear-signature" id="clearSignature">Clear</button>
+        </div>
+    </div>
+
+    <div class="input-section">
+        <label class="input-label">Comment:</label>
+        <input type="text" class="input-field" id="commentInput" placeholder="Enter your comment">
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="input-section">
+        <label class="input-label">Weight:</label>
+        <input type="text" class="input-field" id="weightInput" placeholder="Enter weight">
+    </div>
+
+    <div class="satisfaction-section">
+        <div class="satisfaction-label">Select your satisfaction level:</div>
+        <div class="satisfaction-buttons">
+            <button class="satisfaction-button happy" id="happyButton" title="Happy">
+                😊
+            </button>
+            <button class="satisfaction-button neutral" id="neutralButton" title="Neutral">
+                😐
+            </button>
+            <button class="satisfaction-button sad" id="sadButton" title="Sad">
+                😞
+            </button>
+        </div>
+    </div>
+
+    <button class="submit-button" id="submitButton" disabled>Validate Delivery</button>
+
+    <script>
+        // Camera functionality
+        const cameraButton = document.getElementById('cameraButton');
+        const cameraInput = document.getElementById('cameraInput');
+        const photoPreview = document.getElementById('photoPreview');
+
+        cameraButton.addEventListener('click', () => {
+            cameraInput.click();
+        });
+
+        cameraInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    photoPreview.src = event.target.result;
+                    photoPreview.classList.add('show');
+                    cameraButton.textContent = '📷 Retake Photo';
+                    checkFormCompletion();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Signature functionality
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        const clearButton = document.getElementById('clearSignature');
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        // Set canvas size
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            lastX = e.touches ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+            lastY = e.touches ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const currentX = e.touches ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+            const currentY = e.touches ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+
+            lastX = currentX;
+            lastY = currentY;
+            checkFormCompletion();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        clearButton.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            checkFormCompletion();
+        });
+
+        // Satisfaction buttons
+        let selectedSatisfaction = null;
+        const satisfactionButtons = document.querySelectorAll('.satisfaction-button');
+        
+        satisfactionButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                satisfactionButtons.forEach(btn => btn.classList.remove('selected'));
+                button.classList.add('selected');
+                selectedSatisfaction = button.id.replace('Button', '');
+                checkFormCompletion();
+            });
+        });
+
+        // Form completion check
+        function checkFormCompletion() {
+            const hasPhoto = photoPreview.classList.contains('show');
+            const hasSignature = !canvas.toDataURL().includes('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+            const hasSatisfaction = selectedSatisfaction !== null;
+
+            const submitButton = document.getElementById('submitButton');
+            if (hasPhoto && hasSignature && hasSatisfaction) {
+                submitButton.disabled = false;
+            } else {
+                submitButton.disabled = true;
+            }
+        }
+
+        // Submit button
+        document.getElementById('submitButton').addEventListener('click', () => {
+            const photo = photoPreview.src;
+            const signature = canvas.toDataURL();
+            const comment = document.getElementById('commentInput').value;
+            const weight = document.getElementById('weightInput').value;
+            const satisfaction = selectedSatisfaction;
+
+            console.log('Delivery Data:', {
+                photo: photo ? 'Photo taken' : 'No photo',
+                signature: signature ? 'Signature provided' : 'No signature',
+                comment: comment,
+                weight: weight,
+                satisfaction: satisfaction
+            });
+
+            alert('Delivery validated! (This is a preview - actual submission will be implemented in Android)');
+        });
+
+        // Check on input changes
+        document.getElementById('commentInput').addEventListener('input', checkFormCompletion);
+        document.getElementById('weightInput').addEventListener('input', checkFormCompletion);
+    </script>
+</body>
+</html>
+

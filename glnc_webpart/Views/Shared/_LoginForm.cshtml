@@ -1,0 +1,52 @@
+<!-- Login Page Right Section: Login Form -->
+<div class="login-right">
+    <div class="login-form-container">
+        <div class="login-form-header">
+            <div class="form-logo">
+                <img src="~/images/glnc-logo.svg" alt="GLNC" class="form-logo-img" />
+            </div>
+            <h2 class="welcome-title">Welcome Back</h2>
+            <p class="welcome-subtitle">Sign in to your account</p>
+        </div>
+
+        @await Html.PartialAsync("_ErrorMessage", (string)ViewBag.ErrorMessage)
+
+        <form asp-controller="Account" asp-action="Login" method="post" class="login-form">
+            @Html.AntiForgeryToken()
+            
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <div class="input-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <input type="text" 
+                           id="password" 
+                           name="password" 
+                           class="form-input" 
+                           placeholder="Enter 5-digit password"
+                           maxlength="5" 
+                           pattern="[0-9]{5}" 
+                           inputmode="numeric"
+                           autocomplete="off"
+                           required 
+                           autofocus />
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login">Sign In</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Only allow numeric input
+        document.getElementById('password').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    </script>
+}
+

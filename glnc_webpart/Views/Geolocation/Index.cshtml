@@ -1,0 +1,220 @@
+@model List<glnc_webpart.Models.DriverGeolocation>
+@{
+    ViewData["Title"] = "Geolocation Tracking";
+}
+
+<div class="page-container">
+    <div class="page-header">
+        <h1>Driver Geolocation Tracking</h1>
+    </div>
+
+    <!-- Driver Selection and Toggle Panel -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-end gap-3 flex-wrap">
+                        <div class="flex-grow-1" style="min-width: 200px;">
+                            <label class="form-label mb-1"><strong>Select Driver:</strong></label>
+                            <select class="form-select" id="driverSelect">
+                                <option value="">All Drivers</option>
+                                @foreach (var user in ViewBag.Users as List<glnc_webpart.Models.User> ?? new List<glnc_webpart.Models.User>())
+                                {
+                                    <option value="@user.Id">@user.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div style="min-width: 300px;">
+                            <label class="form-label mb-1"><strong>Location Type:</strong></label>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="locationType" id="driverLocation" value="driver" checked>
+                                <label class="btn btn-outline-primary" for="driverLocation">Last Location</label>
+                                
+                                <input type="radio" class="btn-check" name="locationType" id="deliveryLocation" value="delivery">
+                                <label class="btn btn-outline-primary" for="deliveryLocation">Last Delivery Location</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label mb-1" style="visibility: hidden;"><strong>Load</strong></label>
+                            <button type="button" class="btn btn-primary d-block" onclick="loadLocationData()">
+                                <i class="bi bi-search"></i> Load
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12 mb-3">
+            <div id="map" style="height: 500px; width: 100%; border-radius: 8px;"></div>
+        </div>
+    </div>
+
+    <div class="table-container mt-4">
+        <table class="table table-striped table-hover" id="locationTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Altitude</th>
+                    <th>Date & Time</th>
+                </tr>
+            </thead>
+            <tbody id="locationTableBody">
+                <tr>
+                    <td colspan="5" class="text-center text-muted">Please select a driver and click Load to view location data</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        .location-row:hover {
+            background-color: #e7f3ff !important;
+        }
+        .location-row.table-active {
+            background-color: #b3d9ff !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        var map;
+        var markers = [];
+
+        // Initialize map
+        $(document).ready(function() {
+            var defaultLat = @(Model.FirstOrDefault()?.Lati ?? 38.9072);
+            var defaultLng = @(Model.FirstOrDefault()?.Longi ?? -77.0369);
+            
+            map = L.map('map').setView([defaultLat, defaultLng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        });
+
+        function clearMarkers() {
+            markers.forEach(function(marker) {
+                map.removeLayer(marker);
+            });
+            markers = [];
+        }
+
+        function addMarker(lat, lng, popupText) {
+            var marker = L.marker([lat, lng]).addTo(map);
+            marker.bindPopup(popupText);
+            markers.push(marker);
+            return marker;
+        }
+
+        function loadLocationData() {
+            var userId = $('#driverSelect').val();
+            var locationType = $('input[name="locationType"]:checked').val();
+            var isDeliveryLocation = locationType === 'delivery';
+
+            // For driver locations, user_id is not required (drivergeolocation table doesn't have user_id)
+            // For delivery locations, user_id is required
+            if (isDeliveryLocation && !userId) {
+                alert('Please select a driver for delivery locations');
+                return;
+            }
+
+            // Clear existing markers
+            clearMarkers();
+
+            // Load last location
+            // Note: For driver locations, userId is not used (drivergeolocation table doesn't have user_id)
+            $.get('@Url.Action("GetLastLocation", "Geolocation")', {
+                userId: userId || 0,
+                isDeliveryLocation: isDeliveryLocation
+            }, function(response) {
+                if (response.success && response.data) {
+                    var lat = parseFloat(response.data.lati);
+                    var lng = parseFloat(response.data.longi);
+                    var dateTime = response.data.dateTime;
+                    
+                    // Center map on location
+                    map.setView([lat, lng], 15);
+                    
+                    // Add marker
+                    var popupText = isDeliveryLocation ? 
+                        'Last Delivery Location<br>' + dateTime : 
+                        'Last Location<br>' + dateTime;
+                    addMarker(lat, lng, popupText);
+                } else {
+                    alert(response.message || 'No location found');
+                }
+            }).fail(function() {
+                alert('Error loading location');
+            });
+
+            // Load location history
+            // Note: For driver locations, userId is not used (drivergeolocation table doesn't have user_id)
+            $.get('@Url.Action("GetLocationHistory", "Geolocation")', {
+                userId: userId || 0,
+                isDeliveryLocation: isDeliveryLocation
+            }, function(response) {
+                if (response.success && response.data) {
+                    var tbody = $('#locationTableBody');
+                    tbody.empty();
+                    
+                    if (response.data.length === 0) {
+                        tbody.append('<tr><td colspan="5" class="text-center">No location history found</td></tr>');
+                    } else {
+                        response.data.forEach(function(loc) {
+                            var row = '<tr class="location-row" style="cursor: pointer;" ' +
+                                'data-lati="' + loc.lati + '" ' +
+                                'data-longi="' + loc.longi + '" ' +
+                                'data-alti="' + loc.alti + '" ' +
+                                'data-datetime="' + loc.dateTime + '">' +
+                                '<td>' + loc.id + '</td>' +
+                                '<td>' + loc.lati + '</td>' +
+                                '<td>' + loc.longi + '</td>' +
+                                '<td>' + loc.alti + '</td>' +
+                                '<td>' + loc.dateTime + '</td>' +
+                                '</tr>';
+                            tbody.append(row);
+                        });
+                        
+                        // Add click handlers to table rows
+                        $('.location-row').off('click').on('click', function() {
+                            var lat = parseFloat($(this).data('lati'));
+                            var lng = parseFloat($(this).data('longi'));
+                            var alti = $(this).data('alti');
+                            var dateTime = $(this).data('datetime');
+                            
+                            // Remove previous selection highlight
+                            $('.location-row').removeClass('table-active');
+                            // Add highlight to clicked row
+                            $(this).addClass('table-active');
+                            
+                            // Clear existing markers
+                            clearMarkers();
+                            
+                            // Center map on location
+                            map.setView([lat, lng], 15);
+                            
+                            // Add marker
+                            var popupText = 'Location ID: ' + $(this).find('td:first').text() + '<br>' +
+                                          'Lat: ' + lat + ', Lng: ' + lng + '<br>' +
+                                          'Date & Time: ' + dateTime;
+                            addMarker(lat, lng, popupText);
+                        });
+                    }
+                } else {
+                    $('#locationTableBody').html('<tr><td colspan="5" class="text-center">' + (response.message || 'No location history found') + '</td></tr>');
+                }
+            }).fail(function() {
+                $('#locationTableBody').html('<tr><td colspan="5" class="text-center text-danger">Error loading location history</td></tr>');
+            });
+        }
+    </script>
+}

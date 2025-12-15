@@ -1,0 +1,117 @@
+@{
+    var isLoginPage = ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && 
+                      ViewContext.RouteData.Values["action"]?.ToString() == "Login";
+    var isAuthenticated = Context.Session.GetInt32("UserId") != null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - GLNC Delivery Management</title>
+    
+    <!-- Common CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    
+    <!-- Page-specific CSS -->
+    @if (isLoginPage)
+    {
+        <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+    }
+    else
+    {
+        <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    }
+    
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="@(isLoginPage ? "login-page" : "app-body")">
+    @if (!isLoginPage)
+    {
+        @await Html.PartialAsync("_Header")
+        @await Html.PartialAsync("_Sidebar")
+    }
+
+    <main class="main-content @(isLoginPage ? "login-main" : "app-main")">
+        @RenderBody()
+    </main>
+
+    @if (!isLoginPage)
+    {
+        @await Html.PartialAsync("_Footer")
+    }
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        <div id="toastContainer"></div>
+    </div>
+
+    <!-- Common Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="~/js/pagination.js" asp-append-version="true"></script>
+    @if (!isLoginPage)
+    {
+        <script>
+            // Sidebar Toggle - Available on all pages with state persistence
+            document.addEventListener('DOMContentLoaded', function() {
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                const sidebar = document.getElementById('sidebar');
+                const mainContent = document.querySelector('.app-main');
+                const footer = document.querySelector('.app-footer');
+
+                // Check localStorage for saved sidebar state
+                const savedState = localStorage.getItem('sidebarCollapsed');
+                const isCollapsed = savedState === 'true';
+
+                // Apply saved state on page load
+                if (sidebar) {
+                    if (isCollapsed) {
+                        sidebar.classList.add('collapsed');
+                        if (mainContent) {
+                            mainContent.classList.add('sidebar-collapsed');
+                        }
+                        if (footer) {
+                            footer.classList.add('footer-collapsed');
+                        }
+                    }
+                }
+
+                // Toggle sidebar and save state
+                if (sidebarToggle && sidebar) {
+                    sidebarToggle.addEventListener('click', function() {
+                        const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
+                        
+                        if (isCurrentlyCollapsed) {
+                            // Expand sidebar
+                            sidebar.classList.remove('collapsed');
+                            if (mainContent) {
+                                mainContent.classList.remove('sidebar-collapsed');
+                            }
+                            if (footer) {
+                                footer.classList.remove('footer-collapsed');
+                            }
+                            localStorage.setItem('sidebarCollapsed', 'false');
+                        } else {
+                            // Collapse sidebar
+                            sidebar.classList.add('collapsed');
+                            if (mainContent) {
+                                mainContent.classList.add('sidebar-collapsed');
+                            }
+                            if (footer) {
+                                footer.classList.add('footer-collapsed');
+                            }
+                            localStorage.setItem('sidebarCollapsed', 'true');
+                        }
+                    });
+                }
+            });
+        </script>
+    }
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

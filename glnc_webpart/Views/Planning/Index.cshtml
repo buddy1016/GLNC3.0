@@ -1,0 +1,206 @@
+@{
+    ViewData["Title"] = "Planification des livraisons";
+}
+
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+<link rel="stylesheet" href="~/css/planning.css" />
+
+<div class="page-container">
+    <div class="page-header">
+        <h1>Planification des livraisons</h1>
+    </div>
+
+    <!-- Filter Controls -->
+    <div class="planning-controls">
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label">Driver</label>
+                <select class="form-select" id="driverSelect">
+                    <option value="">Select Driver</option>
+                    @foreach (var user in ViewBag.Users as List<glnc_webpart.Models.User>)
+                    {
+                        <option value="@user.Id">@user.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Camion</label>
+                <select class="form-select" id="truckSelect">
+                    <option value="">Tous</option>
+                    @foreach (var truck in ViewBag.Trucks as List<glnc_webpart.Models.Truck>)
+                    {
+                        <option value="@truck.Id">@truck.License - @truck.Brand @truck.Model</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <!-- Calendar Navigation -->
+        <div class="calendar-navigation mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-primary btn-sm" id="prevWeek">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="todayBtn">Aujourd'hui</button>
+                <button type="button" class="btn btn-primary btn-sm" id="nextWeek">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+                <span class="ms-3" id="dateRange"></span>
+            </div>
+            <div class="view-buttons">
+                <button type="button" class="btn btn-primary btn-sm active" data-view="month">Mois</button>
+                <button type="button" class="btn btn-primary btn-sm" data-view="week">Semaine</button>
+                <button type="button" class="btn btn-primary btn-sm" data-view="day">Jour</button>
+                <button type="button" class="btn btn-primary btn-sm" data-view="list">Liste</button>
+            </div>
+            <button type="button" class="btn btn-success btn-sm" id="saveBtn">Enregistrer</button>
+        </div>
+    </div>
+
+    <!-- Calendar Container -->
+    <div class="card">
+        <div class="card-body">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Delivery Modal -->
+<div class="modal fade" id="deliveryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Create Delivery</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="deliveryForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="deliveryId" name="Id" value="0" />
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Driver <span class="text-danger">*</span></label>
+                            <select class="form-select" id="modalDriver" name="UserId" required disabled>
+                                <option value="">Select Driver</option>
+                                @foreach (var user in ViewBag.Users as List<glnc_webpart.Models.User>)
+                                {
+                                    <option value="@user.Id">@user.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Truck <span class="text-danger">*</span></label>
+                            <select class="form-select" id="modalTruck" name="TruckId" required disabled>
+                                <option value="">Select Truck</option>
+                                @foreach (var truck in ViewBag.Trucks as List<glnc_webpart.Models.Truck>)
+                                {
+                                    <option value="@truck.Id">@truck.License - @truck.Brand @truck.Model</option>
+                                }
+                            </select>
+                            <div id="truckConflictWarning" class="alert alert-warning mt-2" style="display: none;">
+                                <i class="bi bi-exclamation-triangle"></i> This truck is already assigned to another driver during this time period.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Appointment Date & Time <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="modalAppointment" name="DateTimeAppointment" required disabled />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Leave Date & Time <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="modalLeave" name="DateTimeLeave" required disabled />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Client <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="Client" required maxlength="250" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Supplier <span class="text-danger">*</span></label>
+                            <select class="form-select" name="SupplierId" required>
+                                <option value="">Select Supplier</option>
+                                @foreach (var supplier in ViewBag.Suppliers as List<glnc_webpart.Models.Supplier>)
+                                {
+                                    <option value="@supplier.Id">@supplier.SupplierName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Address <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="Address" required maxlength="250" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Contacts <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="Contacts" required maxlength="250" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Invoice <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="Invoice" required maxlength="250" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Weight (kg) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" class="form-control" name="Weight" required />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveDeliveryBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <script src="~/js/planning.js"></script>
+    <script>
+        // Toast Notification Function
+        function showToast(message, type = 'success') {
+            const toastContainer = $('#toastContainer');
+            const toastId = 'toast-' + Date.now();
+            
+            const toastConfig = {
+                success: { bgClass: 'bg-success', icon: 'bi-check-circle-fill', title: 'Success' },
+                error: { bgClass: 'bg-danger', icon: 'bi-x-circle-fill', title: 'Error' },
+                warning: { bgClass: 'bg-warning', icon: 'bi-exclamation-triangle-fill', title: 'Warning' },
+                info: { bgClass: 'bg-info', icon: 'bi-info-circle-fill', title: 'Info' }
+            };
+            
+            const config = toastConfig[type] || toastConfig.success;
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-white ${config.bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="bi ${config.icon} me-2"></i>
+                            <strong>${config.title}:</strong> ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.append(toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+
+        // Initialize planning page
+        document.addEventListener('DOMContentLoaded', function() {
+            initPlanningCalendar();
+        });
+    </script>
+}

@@ -1,0 +1,34 @@
+@{
+    var isAuthenticated = Context.Session.GetInt32("UserId") != null;
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+
+<header class="main-header">
+    <div class="header-left">
+        <div class="logo-section">
+            <img src="~/images/truck-icon.svg" alt="Truck" class="header-truck-icon" />
+            <span class="header-title">Delivery System</span>
+        </div>
+        <button class="hamburger-menu" id="sidebarToggle">
+            <i class="bi bi-list"></i>
+        </button>
+    </div>
+    <div class="header-right">
+        <div class="dropdown">
+            <button class="btn user-dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="user-name">@Context.Session.GetString("UserName")</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                <li>
+                    <form asp-controller="Account" asp-action="Logout" method="post" style="margin: 0;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="dropdown-item">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</header>
