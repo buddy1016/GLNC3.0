@@ -39,7 +39,11 @@
                         <td>@(delivery.DateTimeAccept?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
                         <td>@(delivery.DateTimeArrival?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
                         <td>
-                            @if (delivery.DateTimeArrival.HasValue)
+                            @if (delivery.ReturnFlag)
+                            {
+                                <span class="badge bg-danger">Returned</span>
+                            }
+                            else if (delivery.DateTimeArrival.HasValue)
                             {
                                 <span class="badge bg-success">Completed</span>
                             }

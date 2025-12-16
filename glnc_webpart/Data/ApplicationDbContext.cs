@@ -18,6 +18,7 @@ namespace glnc_webpart.Data
         public DbSet<Message> Messages { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<Truck> Trucks { get; set; }
+        public DbSet<ApiKey> ApiKeys { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -165,6 +166,15 @@ namespace glnc_webpart.Data
                 entity.Property(e => e.Brand).IsRequired().HasMaxLength(50).HasColumnName("brand");
                 entity.Property(e => e.Model).IsRequired().HasMaxLength(50).HasColumnName("model");
                 entity.Property(e => e.Color).IsRequired().HasMaxLength(10).HasColumnName("color");
+            });
+
+            // Configure ApiKey
+            modelBuilder.Entity<ApiKey>(entity =>
+            {
+                entity.ToTable("api_key");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.ApiKeyValue).IsRequired().HasMaxLength(250).HasColumnName("api_key");
             });
         }
     }

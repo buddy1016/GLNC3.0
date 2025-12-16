@@ -6,22 +6,22 @@ $(document).ready(function() {
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Completed', 'In Progress', 'Pending'],
+                    labels: ['Completed', 'Returned', 'Pending'],
                     datasets: [{
                         label: 'Delivery Status',
                         data: [
                             deliveryData.completed || 0,
-                            deliveryData.inProgress || 0,
+                            deliveryData.returned || 0,
                             deliveryData.pending || 0
                         ],
                         backgroundColor: [
                             '#27ae60',  // Green for Completed
-                            '#f39c12',  // Orange for In Progress
+                            '#e74c3c',  // Red for Returned
                             '#95a5a6'   // Gray for Pending
                         ],
                         borderColor: [
                             '#27ae60',
-                            '#f39c12',
+                            '#e74c3c',
                             '#95a5a6'
                         ],
                         borderWidth: 2

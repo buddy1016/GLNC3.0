@@ -8,8 +8,8 @@
     
     var totalDeliveries = deliveries.Count;
     var completedDeliveries = deliveries.Count(d => d.DateTimeArrival.HasValue);
-    var inProgressDeliveries = deliveries.Count(d => d.DateTimeAccept.HasValue && !d.DateTimeArrival.HasValue);
-    var pendingDeliveries = deliveries.Count(d => !d.DateTimeAccept.HasValue);
+    var returnDeliveries = deliveries.Count(d => d.ReturnFlag);
+    var pendingDeliveries = deliveries.Count(d => !d.DateTimeAccept.HasValue && !d.ReturnFlag);
     var activeTrucks = trucks.Count;
     
     var recentDeliveries = deliveries.OrderByDescending(d => d.DateTimeAppointment).Take(3).ToList();
@@ -57,11 +57,11 @@
 
         <div class="kpi-card kpi-yellow">
             <div class="kpi-icon">
-                <i class="bi bi-clock"></i>
+                <i class="bi bi-arrow-return-left"></i>
             </div>
             <div class="kpi-content">
-                <div class="kpi-value">@inProgressDeliveries</div>
-                <div class="kpi-label">IN PROGRESS</div>
+                <div class="kpi-value">@pendingDeliveries</div>
+                <div class="kpi-label">PENDING</div>
             </div>
         </div>
 
@@ -178,7 +178,7 @@
         // Pass delivery data to JavaScript
         const deliveryData = {
             completed: @completedDeliveries,
-            inProgress: @inProgressDeliveries,
+            returned: @returnDeliveries,
             pending: @pendingDeliveries
         };
     </script>

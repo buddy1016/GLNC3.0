@@ -1,0 +1,417 @@
+@model List<glnc_webpart.Models.ApiKey>
+@{
+    ViewData["Title"] = "Gestion des clés API";
+    var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+}
+
+<div class="page-container">
+    <div class="page-header">
+        <h1>Gestion des clés API</h1>
+    </div>
+
+    <div class="row mt-4">
+        <!-- Generate API Key Section -->
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Générer une clé API</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Créez une nouvelle clé API pour accéder aux données du système de livraison.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Clé API Générée</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="generatedApiKey" readonly placeholder="Cliquez sur 'Générer une clé' pour créer une nouvelle clé API">
+                            <button class="btn btn-success" type="button" id="copyApiKeyBtn" title="Copy API Key">
+                                <i class="bi bi-clipboard"></i> Copier
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary" id="generateKeyBtn">
+                        <i class="bi bi-key"></i> Générer une clé
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Endpoints List -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Points d'accès API</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">Utilisez la clé API générée avec les points d'accès suivants pour accéder aux catégories de données spécifiques:</p>
+            
+            <div class="mb-4">
+                <h6 class="fw-bold">Liste des CAMIONS</h6>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="camionsUrl" readonly style="background-color: #e3f2fd;">
+                    <button class="btn btn-sm btn-outline-secondary copy-url-btn" data-url-id="camionsUrl" title="Copy URL">
+                        <i class="bi bi-clipboard"></i> Copier
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold">Liste des Attendances</h6>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="attendancesUrl" readonly style="background-color: #e3f2fd;">
+                    <button class="btn btn-sm btn-outline-secondary copy-url-btn" data-url-id="attendancesUrl" title="Copy URL">
+                        <i class="bi bi-clipboard"></i> Copier
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold">Liste des Drivers</h6>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="driversUrl" readonly style="background-color: #e3f2fd;">
+                    <button class="btn btn-sm btn-outline-secondary copy-url-btn" data-url-id="driversUrl" title="Copy URL">
+                        <i class="bi bi-clipboard"></i> Copier
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold">Liste des Fournisseurs</h6>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="fournisseursUrl" readonly style="background-color: #e3f2fd;">
+                    <button class="btn btn-sm btn-outline-secondary copy-url-btn" data-url-id="fournisseursUrl" title="Copy URL">
+                        <i class="bi bi-clipboard"></i> Copier
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold">Liste des LGEOLOCs</h6>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="lgeolocsUrl" readonly style="background-color: #e3f2fd;">
+                    <button class="btn btn-sm btn-outline-secondary copy-url-btn" data-url-id="lgeolocsUrl" title="Copy URL">
+                        <i class="bi bi-clipboard"></i> Copier
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold">Liste des EVENEMENTS</h6>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="evenementsUrl" readonly style="background-color: #e3f2fd;">
+                    <button class="btn btn-sm btn-outline-secondary copy-url-btn" data-url-id="evenementsUrl" title="Copy URL">
+                        <i class="bi bi-clipboard"></i> Copier
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-bold">Liste des Livraisons - Toutes les livraisons par date</h6>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-5">
+                        <input type="date" class="form-control" id="livraisonsStartDate" placeholder="YYYY/MM/DD">
+                    </div>
+                    <div class="col-md-1 text-center align-self-center">
+                        <span class="fw-bold">→</span>
+                    </div>
+                    <div class="col-md-5">
+                        <input type="date" class="form-control" id="livraisonsEndDate" placeholder="YYYY/MM/DD">
+                    </div>
+                </div>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="livraisonsUrl" readonly style="background-color: #e3f2fd;">
+                    <button class="btn btn-sm btn-outline-secondary copy-url-btn" data-url-id="livraisonsUrl" title="Copy URL">
+                        <i class="bi bi-clipboard"></i> Copier
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Keys List -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Clés API Existantes</h5>
+        </div>
+        <div class="card-body">
+            @if (Model == null || Model.Count == 0)
+            {
+                <p class="text-muted">Aucune clé API générée. Cliquez sur "Générer une clé" pour en créer une.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Clé API</th>
+                                <th>Actes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var apiKey in Model)
+                            {
+                                <tr>
+                                    <td>@apiKey.Id</td>
+                                    <td>
+                                        <code class="text-break">@apiKey.ApiKeyValue</code>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary use-api-key-btn me-2" 
+                                                data-api-key="@apiKey.ApiKeyValue" 
+                                                title="Use this API key">
+                                            <i class="bi bi-check-circle"></i> Use
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-api-key-btn" 
+                                                data-api-key-id="@apiKey.Id" 
+                                                title="Delete API Key">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteApiKeyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation de suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer cette clé API? Cette action ne peut pas être annulée.</p>
+                <p class="text-danger"><strong>Attention:</strong> Toutes les applications utilisant cette clé API cesseront de fonctionner.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteApiKeyBtn">Supprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        const baseUrl = '@baseUrl';
+
+        function getToken() {
+            return $('input[name="__RequestVerificationToken"]').val();
+        }
+
+        function showToast(message, type = 'success') {
+            const toastContainer = $('#toastContainer');
+            const toastId = 'toast-' + Date.now();
+            
+            const toastConfig = {
+                success: {
+                    bgClass: 'bg-success',
+                    icon: 'bi-check-circle-fill',
+                    title: 'Success'
+                },
+                error: {
+                    bgClass: 'bg-danger',
+                    icon: 'bi-x-circle-fill',
+                    title: 'Error'
+                },
+                warning: {
+                    bgClass: 'bg-warning',
+                    icon: 'bi-exclamation-triangle-fill',
+                    title: 'Warning'
+                }
+            };
+            
+            const config = toastConfig[type] || toastConfig.success;
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast ${config.bgClass} text-white" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
+                    <div class="toast-header ${config.bgClass} text-white">
+                        <i class="bi ${config.icon} me-2"></i>
+                        <strong class="me-auto">${config.title}</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.append(toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+
+        // Function to update all API URLs
+        function updateApiUrls(apiKey) {
+            if (apiKey) {
+                $('#camionsUrl').val(baseUrl + '/api/Excel/CAMIONS?code=' + apiKey);
+                $('#attendancesUrl').val(baseUrl + '/api/Excel/Attendances?code=' + apiKey);
+                $('#driversUrl').val(baseUrl + '/api/Excel/Drivers?code=' + apiKey);
+                $('#fournisseursUrl').val(baseUrl + '/api/Excel/Fournisseurs?code=' + apiKey);
+                $('#lgeolocsUrl').val(baseUrl + '/api/Excel/LGEOLOCs?code=' + apiKey);
+                $('#evenementsUrl').val(baseUrl + '/api/Excel/EVENEMENTS?code=' + apiKey);
+
+                const startDate = $('#livraisonsStartDate').val();
+                const endDate = $('#livraisonsEndDate').val();
+                if (startDate && endDate) {
+                    $('#livraisonsUrl').val(baseUrl + '/api/Excel/LIVRAISONS?code=' + apiKey + '&start=' + startDate + '&end=' + endDate);
+                } else {
+                    $('#livraisonsUrl').val('');
+                }
+            }
+        }
+
+        // Update Livraisons URL when dates change
+        $('#livraisonsStartDate, #livraisonsEndDate').on('change', function() {
+            const apiKey = $('#generatedApiKey').val();
+            if (apiKey) {
+                updateApiUrls(apiKey);
+            }
+        });
+
+        // Generate API Key
+        $('#generateKeyBtn').on('click', function() {
+            $.ajax({
+                url: '@Url.Action("Generate", "ApiKey")',
+                type: 'POST',
+                headers: { 'RequestVerificationToken': getToken() },
+                success: function(response) {
+                    if (response.success) {
+                        $('#generatedApiKey').val(response.apiKey);
+                        updateApiUrls(response.apiKey);
+                        showToast('Clé API générée avec succès!', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showToast(response.message || 'Échec de la génération de la clé API', 'error');
+                    }
+                },
+                error: function() {
+                    showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
+                }
+            });
+        });
+
+        // Copy URL buttons
+        $(document).on('click', '.copy-url-btn', function() {
+            const urlId = $(this).data('url-id');
+            const url = $('#' + urlId).val();
+            if (url) {
+                navigator.clipboard.writeText(url).then(function() {
+                    showToast('URL copiée dans le presse-papiers!', 'success');
+                }, function() {
+                    // Fallback for older browsers
+                    $('#' + urlId).select();
+                    document.execCommand('copy');
+                    showToast('URL copiée dans le presse-papiers!', 'success');
+                });
+            } else {
+                showToast('Aucune clé API générée. Veuillez en générer une d\'abord.', 'warning');
+            }
+        });
+
+        // Use API Key button - set the API key and update URLs
+        $(document).on('click', '.use-api-key-btn', function() {
+            const apiKey = $(this).data('api-key');
+            $('#generatedApiKey').val(apiKey);
+            updateApiUrls(apiKey);
+            showToast('Clé API sélectionnée. URLs mises à jour!', 'success');
+        });
+
+        // Update URLs when page loads if there's an API key in the generated field
+        $(document).ready(function() {
+            const apiKey = $('#generatedApiKey').val();
+            if (apiKey) {
+                updateApiUrls(apiKey);
+            } else {
+                // If no API key is set but there are existing keys, use the first one
+                @if (Model != null && Model.Count > 0)
+                {
+                    <text>
+                    const firstApiKey = '@Model[0].ApiKeyValue';
+                    if (firstApiKey) {
+                        $('#generatedApiKey').val(firstApiKey);
+                        updateApiUrls(firstApiKey);
+                    }
+                    </text>
+                }
+            }
+        });
+
+        // Copy API Key
+        $('#copyApiKeyBtn').on('click', function() {
+            const apiKey = $('#generatedApiKey').val();
+            if (apiKey) {
+                navigator.clipboard.writeText(apiKey).then(function() {
+                    showToast('Clé API copiée dans le presse-papiers!', 'success');
+                }, function() {
+                    // Fallback for older browsers
+                    $('#generatedApiKey').select();
+                    document.execCommand('copy');
+                    showToast('Clé API copiée dans le presse-papiers!', 'success');
+                });
+            } else {
+                showToast('Aucune clé API à copier. Veuillez en générer une d\'abord.', 'warning');
+            }
+        });
+
+        // Delete API Key
+        let apiKeyIdToDelete = null;
+
+        $(document).on('click', '.delete-api-key-btn', function() {
+            apiKeyIdToDelete = $(this).data('api-key-id');
+            $('#deleteApiKeyModal').modal('show');
+        });
+
+        $('#confirmDeleteApiKeyBtn').on('click', function() {
+            if (apiKeyIdToDelete) {
+                $.ajax({
+                    url: '@Url.Action("Delete", "ApiKey")',
+                    type: 'POST',
+                    data: {
+                        id: apiKeyIdToDelete,
+                        __RequestVerificationToken: getToken()
+                    },
+                    success: function(response) {
+                        $('#deleteApiKeyModal').modal('hide');
+                        if (response.success) {
+                            showToast('Clé API supprimée avec succès!', 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showToast(response.message || 'Échec de la suppression de la clé API', 'error');
+                        }
+                        apiKeyIdToDelete = null;
+                    },
+                    error: function() {
+                        $('#deleteApiKeyModal').modal('hide');
+                        showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
+                        apiKeyIdToDelete = null;
+                    }
+                });
+            }
+        });
+
+        $('#deleteApiKeyModal').on('hidden.bs.modal', function() {
+            apiKeyIdToDelete = null;
+        });
+    </script>
+}
+

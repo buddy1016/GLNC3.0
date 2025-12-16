@@ -11,7 +11,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
 
         <!-- Instruction Text -->
         <TextView
@@ -42,11 +45,14 @@
         <ImageView
             android:id="@+id/photo_preview"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="0dp"
+            android:minHeight="150dp"
+            android:maxHeight="300dp"
+            android:adjustViewBounds="true"
             android:scaleType="centerInside"
             android:background="#FFFFFF"
             android:visibility="gone"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="16dp"
             tools:visibility="visible" />
 
         <!-- Signature Section -->
@@ -61,9 +67,10 @@
         <FrameLayout
             android:id="@+id/signature_container"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
+            android:layout_height="200dp"
+            android:minHeight="150dp"
             android:background="@drawable/signature_area_background"
-            android:layout_marginBottom="20dp">
+            android:layout_marginBottom="16dp">
 
             <Button
                 android:id="@+id/clear_signature_button"
@@ -149,42 +156,58 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center"
+            android:weightSum="3"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:layout_marginBottom="20dp">
 
             <Button
                 android:id="@+id/happy_button"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minHeight="50dp"
+                android:maxHeight="100dp"
                 android:text="😊"
-                android:textSize="40sp"
+                android:textSize="32sp"
                 android:background="@drawable/circular_button_background"
-                android:layout_marginEnd="30dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
                 android:padding="0dp"
                 android:minWidth="0dp"
-                android:minHeight="0dp" />
+                android:gravity="center" />
 
             <Button
                 android:id="@+id/neutral_button"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minHeight="50dp"
+                android:maxHeight="100dp"
                 android:text="😐"
-                android:textSize="40sp"
+                android:textSize="32sp"
                 android:background="@drawable/circular_button_neutral"
-                android:layout_marginEnd="30dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
                 android:padding="0dp"
                 android:minWidth="0dp"
-                android:minHeight="0dp" />
+                android:gravity="center" />
 
             <Button
                 android:id="@+id/sad_button"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minHeight="50dp"
+                android:maxHeight="100dp"
                 android:text="😞"
-                android:textSize="40sp"
+                android:textSize="32sp"
                 android:background="@drawable/circular_button_sad"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
                 android:padding="0dp"
                 android:minWidth="0dp"
-                android:minHeight="0dp" />
+                android:gravity="center" />
         </LinearLayout>
 
         <!-- Submit Button -->
@@ -192,11 +215,13 @@
             android:id="@+id/submit_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Validate Delivery"
+            android:text="VALIDATE DELIVERY"
             android:textSize="16sp"
             android:textColor="@android:color/white"
             android:background="@drawable/submit_button_background"
             android:padding="15dp"
+            android:layout_marginStart="0dp"
+            android:layout_marginEnd="0dp"
             android:enabled="false"
             android:alpha="0.5" />
 

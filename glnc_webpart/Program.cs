@@ -14,9 +14,16 @@ builder.Services.AddControllersWithViews()
 
 // Configure Entity Framework Core with MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        new MySqlServerVersion(new Version(8, 0, 36))
+    );
+});
 // Add Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -36,6 +43,7 @@ builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IGeolocationService, GeolocationService>();
 builder.Services.AddScoped<IPointageService, PointageService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
 
 var app = builder.Build();
 

@@ -92,8 +92,9 @@
 
         // Initialize map
         $(document).ready(function() {
-            var defaultLat = @(Model.FirstOrDefault()?.Lati ?? 38.9072);
-            var defaultLng = @(Model.FirstOrDefault()?.Longi ?? -77.0369);
+            // Use invariant culture to avoid comma decimal separator issues in JS
+            var defaultLat = parseFloat("@((Model.FirstOrDefault()?.Lati ?? 38.9072).ToString(System.Globalization.CultureInfo.InvariantCulture))");
+            var defaultLng = parseFloat("@((Model.FirstOrDefault()?.Longi ?? -77.0369).ToString(System.Globalization.CultureInfo.InvariantCulture))");
             
             map = L.map('map').setView([defaultLat, defaultLng], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
