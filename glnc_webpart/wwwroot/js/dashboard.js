@@ -6,18 +6,18 @@ $(document).ready(function() {
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Completed', 'Returned', 'Pending'],
+                    labels: ['Terminées', 'Retournées', 'En attente'],
                     datasets: [{
-                        label: 'Delivery Status',
+                        label: 'Statut des livraisons',
                         data: [
                             deliveryData.completed || 0,
                             deliveryData.returned || 0,
                             deliveryData.pending || 0
                         ],
                         backgroundColor: [
-                            '#27ae60',  // Green for Completed
-                            '#e74c3c',  // Red for Returned
-                            '#95a5a6'   // Gray for Pending
+                            '#27ae60',  // Green for Terminées
+                            '#e74c3c',  // Red for Retournées
+                            '#95a5a6'   // Gray for En attente
                         ],
                         borderColor: [
                             '#27ae60',
@@ -59,9 +59,9 @@ $(document).ready(function() {
                 }
             });
         } catch (error) {
-            console.error('Error initializing chart:', error);
+            console.error('Erreur lors de l\'initialisation du graphique:', error);
         }
     } else {
-        console.warn('Chart canvas or deliveryData not found');
+        console.warn('Canvas du graphique ou deliveryData non trouvé');
     }
 });

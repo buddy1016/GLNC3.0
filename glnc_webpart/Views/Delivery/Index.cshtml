@@ -1,11 +1,11 @@
 @model List<glnc_webpart.Models.Delivery>
 @{
-    ViewData["Title"] = "Delivery Management";
+    ViewData["Title"] = "Gestion des livraisons";
 }
 
 <div class="page-container">
     <div class="page-header">
-        <h1>Delivery Management</h1>
+        <h1>Gestion des livraisons</h1>
     </div>
 
     <div class="table-container">
@@ -14,18 +14,18 @@
                 <tr>
                     <th>Client</th>
                     <th>Contact</th>
-                    <th>Truck</th>
-                    <th>Date</th>
-                    <th>Accept</th>
-                    <th>Arrival</th>
-                    <th>Status</th>
-                    <th>Satisfaction</th>
+                    <th>Camion</th>
+                    <th>Date de rendez-vous</th>
+                    <th>Accepté</th>
+                    <th>Arrivée</th>
+                    <th>Statut</th>
+                    <th>Satisfaction du client</th>
                     <th>Comment</th>
-                    <th>Supplier</th>
+                    <th>Fournisseur</th>
                     <th>Photo</th>
-                    <th>Invoice</th>
-                    <th>Weight</th>
-                    <th>Actions</th>
+                    <th>Facture</th>
+                    <th>Poids</th>
+                    <th>Actes</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,19 +41,19 @@
                         <td>
                             @if (delivery.ReturnFlag)
                             {
-                                <span class="badge bg-danger">Returned</span>
+                                <span class="badge bg-danger">Retour</span>
                             }
                             else if (delivery.DateTimeArrival.HasValue)
                             {
-                                <span class="badge bg-success">Completed</span>
+                                <span class="badge bg-success">Complété</span>
                             }
                             else if (delivery.DateTimeAccept.HasValue)
                             {
-                                <span class="badge bg-warning">In Progress</span>
+                                <span class="badge bg-warning">En cours</span>
                             }
                             else
                             {
-                                <span class="badge bg-secondary">Pending</span>
+                                <span class="badge bg-secondary">En attente</span>
                             }
                         </td>
                         <td>
@@ -113,7 +113,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Edit Delivery</h5>
+                <h5 class="modal-title">Modifier la livraison</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="editDeliveryForm">
@@ -122,37 +122,37 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Client</label>
+                            <label class="form-label">Nom du client</label>
                             <input type="text" class="form-control" name="Client" id="editDeliveryClient" required maxlength="250" />
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Address</label>
+                            <label class="form-label">Adresse</label>
                             <input type="text" class="form-control" name="Address" id="editDeliveryAddress" required maxlength="250" />
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Contacts</label>
+                            <label class="form-label">Contacts du client</label>
                             <input type="text" class="form-control" name="Contacts" id="editDeliveryContacts" required maxlength="250" />
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Invoice</label>
+                            <label class="form-label">Facture</label>
                             <input type="text" class="form-control" name="Invoice" id="editDeliveryInvoice" required maxlength="250" />
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Appointment Date</label>
+                            <label class="form-label">Date de rendez-vous</label>
                             <input type="datetime-local" class="form-control" name="DateTimeAppointment" id="editDeliveryAppointment" required />
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Leave Date</label>
+                            <label class="form-label">Date de départ</label>
                             <input type="datetime-local" class="form-control" name="DateTimeLeave" id="editDeliveryLeave" required />
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Supplier</label>
+                            <label class="form-label">Fournisseur</label>
                             <select class="form-select" name="SupplierId" id="editDeliverySupplier" required>
                                 @foreach (var supplier in ViewBag.Suppliers as List<glnc_webpart.Models.Supplier>)
                                 {
@@ -161,7 +161,7 @@
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Truck</label>
+                            <label class="form-label">Camion</label>
                             <select class="form-select" name="TruckId" id="editDeliveryTruck" required>
                                 @foreach (var truck in ViewBag.Trucks as List<glnc_webpart.Models.Truck>)
                                 {
@@ -171,17 +171,17 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Weight</label>
+                        <label class="form-label">Poids</label>
                         <input type="number" step="0.01" class="form-control" name="Weight" id="editDeliveryWeight" required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Comment</label>
+                        <label class="form-label">Commentaire</label>
                         <textarea class="form-control" name="Comment" id="editDeliveryComment" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Mettre à jour</button>
                 </div>
             </form>
         </div>
@@ -193,12 +193,12 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Delivery Details</h5>
+                <h5 class="modal-title">Détails de la livraison</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="viewDeliveryContent"></div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
             </div>
         </div>
     </div>
@@ -209,14 +209,14 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Invoice Photo</h5>
+                <h5 class="modal-title">Photo de la facture</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
                 <img id="invoiceImageDisplay" src="" alt="Invoice Photo" class="img-fluid" style="max-height: 70vh; width: auto;" />
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
             </div>
         </div>
     </div>
@@ -227,16 +227,16 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
+                <h5 class="modal-title">Confirmation de suppression</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete this delivery? This action cannot be undone.</p>
-                <p class="text-muted mb-0"><strong>Client:</strong> <span id="deleteDeliveryClient"></span></p>
+                <p>Êtes-vous sûr de vouloir supprimer cette livraison? Cette action ne peut pas être annulée.</p>
+                <p class="text-muted mb-0"><strong>Nom du client:</strong> <span id="deleteDeliveryClient"></span></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteDeliveryBtn">Delete</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteDeliveryBtn">Supprimer</button>
             </div>
         </div>
     </div>
@@ -253,7 +253,7 @@
                 $('#viewDeliveryContent').html(html);
                 $('#viewDeliveryModal').modal('show');
             }).fail(function() {
-                showToast('An error occurred while loading delivery details', 'error');
+                showToast('Une erreur est survenue lors du chargement des détails de la livraison', 'error');
             });
         }
 
@@ -270,7 +270,7 @@
                     const invoiceImage = response.data.invoiceImage || response.data.InvoiceImage;
                     
                     if (!invoiceImage || invoiceImage === '' || invoiceImage === null) {
-                        showToast('No invoice photo available for this delivery.', 'warning');
+                        showToast('Aucune photo de facture disponible pour cette livraison.', 'warning');
                         return;
                     }
 
@@ -294,13 +294,13 @@
                     // Handle image load error (remove previous handlers first)
                     $('#invoiceImageDisplay').off('error').on('error', function() {
                         $('#invoiceImageModal').modal('hide');
-                        showToast('Failed to load invoice photo. The image may be corrupted or invalid.', 'error');
+                        showToast('Échec du chargement de la photo de facture. L\'image peut être corrompue ou invalide.', 'error');
                     });
                 } else {
-                    showToast('No invoice photo available for this delivery.', 'warning');
+                    showToast('Aucune photo de facture disponible pour cette livraison.', 'warning');
                 }
             }).fail(function() {
-                showToast('An error occurred while loading the invoice photo.', 'error');
+                showToast('Une erreur est survenue lors du chargement de la photo de facture.', 'error');
             });
         }
 
@@ -313,22 +313,22 @@
                 success: {
                     bgClass: 'bg-success',
                     icon: 'bi-check-circle-fill',
-                    title: 'Success'
+                    title: 'Succès'
                 },
                 error: {
                     bgClass: 'bg-danger',
                     icon: 'bi-x-circle-fill',
-                    title: 'Error'
+                    title: 'Erreur'
                 },
                 warning: {
                     bgClass: 'bg-warning',
                     icon: 'bi-exclamation-triangle-fill',
-                    title: 'Warning'
+                    title: 'Avertissement'
                 },
                 info: {
                     bgClass: 'bg-info',
                     icon: 'bi-info-circle-fill',
-                    title: 'Info'
+                    title: 'Information'
                 }
             };
             
@@ -375,10 +375,10 @@
                     $('#editDeliveryComment').val(d.comment);
                     $('#editDeliveryModal').modal('show');
                 } else {
-                    showToast('Failed to load delivery data', 'error');
+                    showToast('Échec du chargement des données de la livraison', 'error');
                 }
             }).fail(function() {
-                showToast('An error occurred while loading delivery data', 'error');
+                showToast('Une erreur est survenue lors du chargement des données de la livraison', 'error');
             });
         }
 
@@ -393,16 +393,16 @@
                 success: function(response) {
                     if (response.success) {
                         $('#editDeliveryModal').modal('hide');
-                        showToast('Delivery updated successfully!', 'success');
+                        showToast('Livraison mise à jour avec succès!', 'success');
                         setTimeout(function() {
                             location.reload();
                         }, 1000);
                     } else {
-                        showToast(response.message || 'Failed to update delivery', 'error');
+                        showToast(response.message || 'Échec de la mise à jour de la livraison', 'error');
                     }
                 },
                 error: function() {
-                    showToast('An error occurred. Please try again.', 'error');
+                    showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
                 }
             });
         });
@@ -432,18 +432,18 @@
                     success: function(response) {
                         $('#deleteDeliveryModal').modal('hide');
                         if (response.success) {
-                            showToast('Delivery deleted successfully!', 'success');
+                            showToast('Livraison supprimée avec succès!', 'success');
                             setTimeout(function() {
                                 location.reload();
                             }, 1000);
                         } else {
-                            showToast(response.message || 'Failed to delete delivery', 'error');
+                            showToast(response.message || 'Échec de la suppression de la livraison', 'error');
                         }
                         deliveryIdToDelete = null;
                     },
                     error: function() {
                         $('#deleteDeliveryModal').modal('hide');
-                        showToast('An error occurred. Please try again.', 'error');
+                        showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
                         deliveryIdToDelete = null;
                     }
                 });

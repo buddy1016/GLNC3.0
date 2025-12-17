@@ -5,7 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.location.Location;
+// Note: Using custom Location class, not android.location.Location
+import com.example.glnc.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,9 +15,6 @@ import org.osmdroid.config.Configuration;
 import android.view.View;
 import android.view.Menu;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
@@ -53,12 +51,12 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private OkHttpClient httpClient;
     private Global global = new Global();
-    private FusedLocationProviderClient fusedLocationClient;
     private boolean isLoggingOut = false;
     private NavController navController;
     private Handler locationUpdateHandler;
     private Runnable locationUpdateRunnable;
     private static final long LOCATION_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+    public Location location; // Continuous GPS tracking instance (LocationManager-based)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,9 +75,9 @@ public class MainActivity extends AppCompatActivity {
                 .readTimeout(10, TimeUnit.SECONDS)
                 .writeTimeout(10, TimeUnit.SECONDS)
                 .build();
-
-        // Initialize location client
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        
+        // Initialize continuous GPS tracking (LocationManager-based, no Google Play Services)
+        location = new Location(getApplicationContext());
 
         setSupportActionBar(binding.appBarMain.toolbar);
         binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
@@ -103,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         // Store navController for refresh functionality
         this.navController = navController;
         
-        // Listen to navigation changes to show/hide FAB
+        // Listen to navigation changes to show/hide FAB and update toolbar title
         navController.addOnDestinationChangedListener(new androidx.navigation.NavController.OnDestinationChangedListener() {
             @Override
             public void onDestinationChanged(@NonNull androidx.navigation.NavController controller,
@@ -112,8 +110,21 @@ public class MainActivity extends AppCompatActivity {
                 // Hide FAB when on Map fragment, show it on Home fragment
                 if (destination.getId() == R.id.nav_map) {
                     binding.appBarMain.fab.setVisibility(View.GONE);
+                    // Set toolbar title to "Carte" for map
+                    if (getSupportActionBar() != null) {
+                        getSupportActionBar().setTitle(getString(R.string.menu_map));
+                    }
                 } else if (destination.getId() == R.id.nav_home) {
                     binding.appBarMain.fab.setVisibility(View.VISIBLE);
+                    // Set toolbar title to driver's name for home
+                    SharedPreferences prefs = getSharedPreferences("GLNC_Prefs", Context.MODE_PRIVATE);
+                    String userName = prefs.getString("user_name", "");
+                    if (!userName.isEmpty() && getSupportActionBar() != null) {
+                        getSupportActionBar().setTitle(userName);
+                    } else if (getSupportActionBar() != null) {
+                        // Fallback to "Maison" if no user name available
+                        getSupportActionBar().setTitle(getString(R.string.menu_home));
+                    }
                 }
             }
         });
@@ -125,6 +136,10 @@ public class MainActivity extends AppCompatActivity {
         String userName = prefs.getString("user_name", "");
         if (!userName.isEmpty()) {
             userNameTextView.setText(userName);
+            // Also set toolbar title to driver's name
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle(userName);
+            }
         }
         
         // Handle navigation item clicks and close drawer
@@ -198,6 +213,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Start continuous GPS tracking (WorkTime-style)
+        if (location != null) {
+            location.initLocation();
+        }
         // Resume periodic location updates if not already running
         if (locationUpdateHandler == null) {
             startPeriodicLocationUpdates();
@@ -207,7 +226,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        // Don't stop location updates on pause - keep them running in background
+        // Stop continuous GPS tracking to save battery
+        if (location != null) {
+            location.stopLocation();
+        }
+        // Don't stop periodic location updates on pause - keep them running in background
     }
     
     @Override
@@ -236,28 +259,36 @@ public class MainActivity extends AppCompatActivity {
             return; // No user logged in
         }
 
-        // Get current location for logout using Global.getCurrentLocation for better accuracy
-        Global.getCurrentLocation(this, new Global.LocationCallback() {
-            @Override
-            public void onLocationReceived(double latitude, double longitude, double altitude) {
-                Log.d("MainActivity", "=== LOGOUT - LOCATION RECEIVED ===");
-
-                // Send type 2 attendance (logout) with accurate GPS location
-                sendAttendanceData(userId, latitude, longitude, altitude, 2);
+        // Get current location from Location instance or Global storage
+        double latitude = 0.0;
+        double longitude = 0.0;
+        double altitude = 0.0;
+        
+        // Try to get location from Location instance first
+        if (location != null && location.latitude != 0.0 && location.longitude != 0.0) {
+            latitude = location.latitude;
+            longitude = location.longitude;
+            altitude = location.altitude;
+            Log.d("MainActivity", "=== LOGOUT - Using Location instance ===");
+        } else {
+            // Fallback to Global storage
+            android.location.Location storedLocation = Global.getLocation();
+            if (storedLocation != null) {
+                latitude = storedLocation.getLatitude();
+                longitude = storedLocation.getLongitude();
+                altitude = storedLocation.getAltitude();
+                Log.d("MainActivity", "=== LOGOUT - Using Global storage ===");
+            } else {
+                // Final fallback: SharedPreferences
+                latitude = prefs.getFloat("latitude", 0.0f);
+                longitude = prefs.getFloat("longitude", 0.0f);
+                altitude = prefs.getFloat("altitude", 0.0f);
+                Log.d("MainActivity", "=== LOGOUT - Using SharedPreferences ===");
             }
+        }
 
-            @Override
-            public void onLocationError(String error) {
-                // Use stored location as fallback
-                SharedPreferences prefs = getSharedPreferences("GLNC_Prefs", Context.MODE_PRIVATE);
-                double latitude = prefs.getFloat("latitude", 0.0f);
-                double longitude = prefs.getFloat("longitude", 0.0f);
-                double altitude = prefs.getFloat("altitude", 0.0f);
-
-                Log.d("MainActivity", "================================");
-                sendAttendanceData(userId, latitude, longitude, altitude, 2);
-            }
-        });
+        // Send type 2 attendance (logout) with GPS location
+        sendAttendanceData(userId, latitude, longitude, altitude, 2);
     }
 
     private void sendAttendanceData(String userId, double latitude, double longitude, double altitude, int type) {
@@ -384,36 +415,43 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private void sendCurrentLocationToBackend(String userId) {
-
-        // Get current location using GPS
-        Global.getCurrentLocation(this, new Global.LocationCallback() {
-            @Override
-            public void onLocationReceived(double latitude, double longitude, double altitude) {
-
-                Log.d("MainActivity", "Sending to backend: /app/current_location");
-                
-                // Send location to backend
-                sendLocationToBackend(userId, latitude, longitude, altitude);
-            }
-            
-            @Override
-            public void onLocationError(String error) {
-
-                
-                // Use stored location as fallback
+        // Get current location from Location instance or Global storage
+        double latitude = 0.0;
+        double longitude = 0.0;
+        double altitude = 0.0;
+        
+        // Try to get location from Location instance first
+        if (location != null && location.latitude != 0.0 && location.longitude != 0.0) {
+            latitude = location.latitude;
+            longitude = location.longitude;
+            altitude = location.altitude;
+            Log.d("MainActivity", "Sending to backend: /app/current_location (from Location instance)");
+        } else {
+            // Fallback to Global storage
+            android.location.Location storedLocation = Global.getLocation();
+            if (storedLocation != null) {
+                latitude = storedLocation.getLatitude();
+                longitude = storedLocation.getLongitude();
+                altitude = storedLocation.getAltitude();
+                Log.d("MainActivity", "Sending to backend: /app/current_location (from Global storage)");
+            } else {
+                // Final fallback: SharedPreferences
                 SharedPreferences prefs = getSharedPreferences("GLNC_Prefs", Context.MODE_PRIVATE);
-                double latitude = prefs.getFloat("latitude", 0.0f);
-                double longitude = prefs.getFloat("longitude", 0.0f);
-                double altitude = prefs.getFloat("altitude", 0.0f);
+                latitude = prefs.getFloat("latitude", 0.0f);
+                longitude = prefs.getFloat("longitude", 0.0f);
+                altitude = prefs.getFloat("altitude", 0.0f);
                 
                 if (latitude != 0.0 || longitude != 0.0) {
-                    Log.d("MainActivity", "Fallback Altitude: " + altitude);
-                    sendLocationToBackend(userId, latitude, longitude, altitude);
+                    Log.d("MainActivity", "Sending to backend: /app/current_location (from SharedPreferences)");
                 } else {
-                    Log.e("MainActivity", "No location available (GPS failed and no stored location)");
+                    Log.e("MainActivity", "No location available (GPS not initialized or no stored location)");
+                    return; // Don't send if no location available
                 }
             }
-        });
+        }
+        
+        // Send location to backend
+        sendLocationToBackend(userId, latitude, longitude, altitude);
     }
     
     private void sendLocationToBackend(String userId, double latitude, double longitude, double altitude) {

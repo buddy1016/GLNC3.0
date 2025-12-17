@@ -7,39 +7,39 @@
     <nav class="sidebar-nav">
         <a class="sidebar-item @(isDashboard ? "active" : "")" asp-controller="Home" asp-action="Index" title="Dashboard">
             <i class="bi bi-speedometer2"></i>
-            <span>Dashboard</span>
+            <span>Tableau de bord</span>
         </a>
         <a class="sidebar-item @(currentController == "Users" ? "active" : "")" asp-controller="Users" asp-action="Index" title="Users">
             <i class="bi bi-people"></i>
-            <span>Users</span>
+            <span>Utilisateurs</span>
         </a>
         <a class="sidebar-item @(currentController == "Delivery" ? "active" : "")" asp-controller="Delivery" asp-action="Index" title="Delivery">
             <i class="bi bi-box-seam"></i>
-            <span>Delivery</span>
+            <span>Livraisons</span>
         </a>
         <a class="sidebar-item @(currentController == "Planning" ? "active" : "")" asp-controller="Planning" asp-action="Index" title="Planning">
             <i class="bi bi-clipboard-check"></i>
-            <span>Planning</span>
+            <span>Planning des livraisons</span>
         </a>
         <a class="sidebar-item @(currentController == "Geolocation" ? "active" : "")" asp-controller="Geolocation" asp-action="Index" title="Geolocation">
             <i class="bi bi-geo-alt"></i>
-            <span>Geolocation</span>
+            <span>Localisation</span>
         </a>
         <a class="sidebar-item @(currentController == "Trucks" ? "active" : "")" asp-controller="Trucks" asp-action="Index" title="Trucks">
             <i class="bi bi-truck"></i>
-            <span>Trucks</span>
+            <span>Camions</span>
         </a>
         <a class="sidebar-item @(currentController == "Supplier" ? "active" : "")" asp-controller="Supplier" asp-action="Index" title="Supplier">
             <i class="bi bi-building"></i>
-            <span>Supplier</span>
+            <span>Fournisseurs</span>
         </a>
         <a class="sidebar-item @(currentController == "Pointages" ? "active" : "")" asp-controller="Pointages" asp-action="Index" title="Pointages">
             <i class="bi bi-clock"></i>
-            <span>Pointages</span>
+            <span>Suivi des attendances</span>
         </a>
         <a class="sidebar-item @(currentController == "ApiKey" ? "active" : "")" asp-controller="ApiKey" asp-action="Index" title="API Key">
             <i class="bi bi-key"></i>
-            <span>API Key</span>
+            <span>Clés API</span>
         </a>
     </nav>
 </aside>

@@ -14,9 +14,9 @@
     <div class="planning-controls">
         <div class="row mb-3">
             <div class="col-md-3">
-                <label class="form-label">Driver</label>
+                <label class="form-label">Conducteur</label>
                 <select class="form-select" id="driverSelect">
-                    <option value="">Select Driver</option>
+                    <option value="">Sélectionner un conducteur</option>
                     @foreach (var user in ViewBag.Users as List<glnc_webpart.Models.User>)
                     {
                         <option value="@user.Id">@user.Name</option>
@@ -26,7 +26,7 @@
             <div class="col-md-3">
                 <label class="form-label">Camion</label>
                 <select class="form-select" id="truckSelect">
-                    <option value="">Tous</option>
+                    <option value="">Tous les camions</option>
                     @foreach (var truck in ViewBag.Trucks as List<glnc_webpart.Models.Truck>)
                     {
                         <option value="@truck.Id">@truck.License - @truck.Brand @truck.Model</option>
@@ -70,7 +70,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Create Delivery</h5>
+                <h5 class="modal-title" id="modalTitle">Créer une livraison</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -79,9 +79,9 @@
                     <input type="hidden" id="deliveryId" name="Id" value="0" />
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Driver <span class="text-danger">*</span></label>
+                            <label class="form-label">Conducteur <span class="text-danger">*</span></label>
                             <select class="form-select" id="modalDriver" name="UserId" required disabled>
-                                <option value="">Select Driver</option>
+                                <option value="">Sélectionner un conducteur</option>
                                 @foreach (var user in ViewBag.Users as List<glnc_webpart.Models.User>)
                                 {
                                     <option value="@user.Id">@user.Name</option>
@@ -89,38 +89,38 @@
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Truck <span class="text-danger">*</span></label>
+                            <label class="form-label">Camion <span class="text-danger">*</span></label>
                             <select class="form-select" id="modalTruck" name="TruckId" required disabled>
-                                <option value="">Select Truck</option>
+                                <option value="">Sélectionner un camion</option>
                                 @foreach (var truck in ViewBag.Trucks as List<glnc_webpart.Models.Truck>)
                                 {
                                     <option value="@truck.Id">@truck.License - @truck.Brand @truck.Model</option>
                                 }
                             </select>
                             <div id="truckConflictWarning" class="alert alert-warning mt-2" style="display: none;">
-                                <i class="bi bi-exclamation-triangle"></i> This truck is already assigned to another driver during this time period.
+                                <i class="bi bi-exclamation-triangle"></i> Ce camion est déjà assigné à un autre conducteur pendant cette période.
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Appointment Date & Time <span class="text-danger">*</span></label>
+                            <label class="form-label">Date et heure de rendez-vous <span class="text-danger">*</span></label>
                             <input type="datetime-local" class="form-control" id="modalAppointment" name="DateTimeAppointment" required disabled />
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Leave Date & Time <span class="text-danger">*</span></label>
+                            <label class="form-label">Date et heure de départ <span class="text-danger">*</span></label>
                             <input type="datetime-local" class="form-control" id="modalLeave" name="DateTimeLeave" required disabled />
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Client <span class="text-danger">*</span></label>
+                            <label class="form-label">Nom du client <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="Client" required maxlength="250" />
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Supplier <span class="text-danger">*</span></label>
+                            <label class="form-label">Fournisseur <span class="text-danger">*</span></label>
                             <select class="form-select" name="SupplierId" required>
-                                <option value="">Select Supplier</option>
+                                <option value="">Sélectionner un fournisseur</option>
                                 @foreach (var supplier in ViewBag.Suppliers as List<glnc_webpart.Models.Supplier>)
                                 {
                                     <option value="@supplier.Id">@supplier.SupplierName</option>
@@ -130,29 +130,29 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Address <span class="text-danger">*</span></label>
+                            <label class="form-label">Adresse <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="Address" required maxlength="250" />
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Contacts <span class="text-danger">*</span></label>
+                            <label class="form-label">Contacts du client <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="Contacts" required maxlength="250" />
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Invoice <span class="text-danger">*</span></label>
+                            <label class="form-label">Facture <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="Invoice" required maxlength="250" />
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Weight (kg) <span class="text-danger">*</span></label>
+                            <label class="form-label">Poids (kg) <span class="text-danger">*</span></label>
                             <input type="number" step="0.01" class="form-control" name="Weight" required />
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveDeliveryBtn">Save</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="saveDeliveryBtn">Enregistrer</button>
             </div>
         </div>
     </div>
@@ -168,10 +168,10 @@
             const toastId = 'toast-' + Date.now();
             
             const toastConfig = {
-                success: { bgClass: 'bg-success', icon: 'bi-check-circle-fill', title: 'Success' },
-                error: { bgClass: 'bg-danger', icon: 'bi-x-circle-fill', title: 'Error' },
-                warning: { bgClass: 'bg-warning', icon: 'bi-exclamation-triangle-fill', title: 'Warning' },
-                info: { bgClass: 'bg-info', icon: 'bi-info-circle-fill', title: 'Info' }
+                success: { bgClass: 'bg-success', icon: 'bi-check-circle-fill', title: 'Succès' },
+                error: { bgClass: 'bg-danger', icon: 'bi-x-circle-fill', title: 'Erreur' },
+                warning: { bgClass: 'bg-warning', icon: 'bi-exclamation-triangle-fill', title: 'Avertissement' },
+                info: { bgClass: 'bg-info', icon: 'bi-info-circle-fill', title: 'Information' }
             };
             
             const config = toastConfig[type] || toastConfig.success;

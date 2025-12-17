@@ -155,13 +155,20 @@ namespace glnc_webpart.Services
             return true;
         }
 
-        public async Task<bool> CancelDeliveryAsync(int deliveryId)
+        public async Task<bool> CancelDeliveryAsync(int deliveryId, string? comment = null)
         {
             var delivery = await _context.Deliveries.FindAsync(deliveryId);
             if (delivery == null)
                 return false;
 
             delivery.ReturnFlag = true;
+            
+            // Store cancellation comment in Description field
+            if (!string.IsNullOrWhiteSpace(comment))
+            {
+                delivery.Description = comment;
+            }
+            
             await _context.SaveChangesAsync();
             return true;
         }

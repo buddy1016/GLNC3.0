@@ -7,7 +7,7 @@
     <div class="header-left">
         <div class="logo-section">
             <img src="~/images/truck-icon.svg" alt="Truck" class="header-truck-icon" />
-            <span class="header-title">Delivery System</span>
+            <span class="header-title">Système de gestion des livraisons GLNC</span>
         </div>
         <button class="hamburger-menu" id="sidebarToggle">
             <i class="bi bi-list"></i>
@@ -24,7 +24,7 @@
                     <form asp-controller="Account" asp-action="Logout" method="post" style="margin: 0;">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="dropdown-item">
-                            <i class="bi bi-box-arrow-right"></i> Logout
+                            <i class="bi bi-box-arrow-right"></i> Déconnexion
                         </button>
                     </form>
                 </li>

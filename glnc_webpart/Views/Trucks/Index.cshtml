@@ -1,11 +1,11 @@
 @model List<glnc_webpart.Models.Truck>
 @{
-    ViewData["Title"] = "Trucks Management";
+    ViewData["Title"] = "Gestion des camions";
 }
 
 <div class="page-container">
     <div class="page-header">
-        <h1>Trucks Management</h1>
+        <h1>Gestion des camions</h1>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTruckModal">
             <i class="bi bi-plus-circle"></i> 
         </button>
@@ -15,10 +15,10 @@
         <table class="table table-striped table-hover table-centered">
             <thead>
                 <tr>
-                    <th>License</th>
+                    <th>Immatriculation</th>
                     <th>Brand</th>
-                    <th>Model</th>
-                    <th>Color</th>
+                    <th>Modèle</th>
+                    <th>Couleur</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -47,7 +47,7 @@
                             </div>
                         </td>
                         <td>
-                            <button class="btn btn-icon btn-edit" onclick="editTruck(@truck.Id)" title="Edit Truck">
+                            <button class="btn btn-icon btn-edit" onclick="editTruck(@truck.Id)" title="Modifier le camion">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
                             <button class="btn btn-icon btn-delete delete-truck-btn" data-truck-id="@truck.Id" data-truck-license="@truck.License" title="Delete Truck">
@@ -66,36 +66,36 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Create New Truck</h5>
+                <h5 class="modal-title">Créer un nouveau camion</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="createTruckForm">
                 @Html.AntiForgeryToken()
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">License <span class="text-danger">*</span></label>
+                        <label class="form-label">Immatriculation <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="License" required maxlength="250" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Brand <span class="text-danger">*</span></label>
+                        <label class="form-label">Marque <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="Brand" required maxlength="50" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Model <span class="text-danger">*</span></label>
+                        <label class="form-label">Modèle <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="Model" required maxlength="50" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Color <span class="text-danger">*</span></label>
+                        <label class="form-label">Couleur <span class="text-danger">*</span></label>
                         <div class="d-flex align-items-center gap-2">
                             <input type="color" class="form-control form-control-color" name="Color" id="createTruckColor" value="#ffffff" required style="width: 60px; height: 38px; cursor: pointer;" />
                             <input type="text" class="form-control" id="createTruckColorText" placeholder="#ffffff" maxlength="7" style="flex: 1;" />
                         </div>
-                        <small class="form-text text-muted">Select a color or enter a hex code</small>
+                        <small class="form-text text-muted">Sélectionner une couleur ou entrer un code hexadécimal</small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Créer</button>
                 </div>
             </form>
         </div>
@@ -107,7 +107,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Edit Truck</h5>
+                <h5 class="modal-title">Modifier le camion</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="editTruckForm">
@@ -115,29 +115,29 @@
                 <input type="hidden" name="Id" id="editTruckId" />
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">License</label>
+                        <label class="form-label">Immatriculation</label>
                         <input type="text" class="form-control" name="License" id="editTruckLicense" required maxlength="250" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Brand</label>
+                        <label class="form-label">Marque</label>
                         <input type="text" class="form-control" name="Brand" id="editTruckBrand" required maxlength="50" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Model</label>
+                        <label class="form-label">Modèle</label>
                         <input type="text" class="form-control" name="Model" id="editTruckModel" required maxlength="50" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Color</label>
+                        <label class="form-label">Couleur</label>
                         <div class="d-flex align-items-center gap-2">
                             <input type="color" class="form-control form-control-color" name="Color" id="editTruckColor" required style="width: 60px; height: 38px; cursor: pointer;" />
                             <input type="text" class="form-control" id="editTruckColorText" placeholder="#ffffff" maxlength="7" style="flex: 1;" />
                         </div>
-                        <small class="form-text text-muted">Select a color or enter a hex code</small>
+                        <small class="form-text text-muted">Sélectionner une couleur ou entrer un code hexadécimal</small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Mettre à jour</button>
                 </div>
             </form>
         </div>
@@ -149,16 +149,16 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
+                <h5 class="modal-title">Confirmation de suppression</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete this truck? This action cannot be undone.</p>
-                <p class="text-muted mb-0"><strong>License:</strong> <span id="deleteTruckLicense"></span></p>
+                <p>Êtes-vous sûr de vouloir supprimer ce camion? Cette action ne peut pas être annulée.</p>
+                <p class="text-muted mb-0"><strong>Immatriculation:</strong> <span id="deleteTruckLicense"></span></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteTruckBtn">Delete</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteTruckBtn">Supprimer</button>
             </div>
         </div>
     </div>
@@ -172,10 +172,10 @@
             const toastId = 'toast-' + Date.now();
             
             const toastConfig = {
-                success: { bgClass: 'bg-success', icon: 'bi-check-circle-fill', title: 'Success' },
-                error: { bgClass: 'bg-danger', icon: 'bi-x-circle-fill', title: 'Error' },
-                warning: { bgClass: 'bg-warning', icon: 'bi-exclamation-triangle-fill', title: 'Warning' },
-                info: { bgClass: 'bg-info', icon: 'bi-info-circle-fill', title: 'Info' }
+                success: { bgClass: 'bg-success', icon: 'bi-check-circle-fill', title: 'Succès' },
+                error: { bgClass: 'bg-danger', icon: 'bi-x-circle-fill', title: 'Erreur' },
+                warning: { bgClass: 'bg-warning', icon: 'bi-exclamation-triangle-fill', title: 'Avertissement' },
+                info: { bgClass: 'bg-info', icon: 'bi-info-circle-fill', title: 'Information' }
             };
             
             const config = toastConfig[type] || toastConfig.success;
@@ -261,16 +261,16 @@
                     if (response.success) {
                         $('#createTruckModal').modal('hide');
                         $('#createTruckForm')[0].reset();
-                        showToast('Truck created successfully!', 'success');
+                        showToast('Camion créé avec succès!', 'success');
                         setTimeout(function() {
                             location.reload();
                         }, 1000);
                     } else {
-                        showToast(response.message || 'Failed to create truck', 'error');
+                        showToast(response.message || 'Échec de la création du camion', 'error');
                     }
                 },
                 error: function() {
-                    showToast('An error occurred. Please try again.', 'error');
+                    showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
                 }
             });
         });
@@ -307,16 +307,16 @@
                 success: function(response) {
                     if (response.success) {
                         $('#editTruckModal').modal('hide');
-                        showToast('Truck updated successfully!', 'success');
+                        showToast('Camion mis à jour avec succès!', 'success');
                         setTimeout(function() {
                             location.reload();
                         }, 1000);
                     } else {
-                        showToast(response.message || 'Failed to update truck', 'error');
+                        showToast(response.message || 'Échec de la mise à jour du camion', 'error');
                     }
                 },
                 error: function() {
-                    showToast('An error occurred. Please try again.', 'error');
+                    showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
                 }
             });
         });
@@ -346,18 +346,18 @@
                     success: function(response) {
                         $('#deleteTruckModal').modal('hide');
                         if (response.success) {
-                            showToast('Truck deleted successfully!', 'success');
+                            showToast('Camion supprimé avec succès!', 'success');
                             setTimeout(function() {
                                 location.reload();
                             }, 1000);
                         } else {
-                            showToast(response.message || 'Failed to delete truck', 'error');
+                            showToast(response.message || 'Échec de la suppression du camion', 'error');
                         }
                         truckIdToDelete = null;
                     },
                     error: function() {
                         $('#deleteTruckModal').modal('hide');
-                        showToast('An error occurred. Please try again.', 'error');
+                        showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
                         truckIdToDelete = null;
                     }
                 });

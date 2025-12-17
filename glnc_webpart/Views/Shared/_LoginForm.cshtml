@@ -5,8 +5,8 @@
             <div class="form-logo">
                 <img src="~/images/glnc-logo.svg" alt="GLNC" class="form-logo-img" />
             </div>
-            <h2 class="welcome-title">Welcome Back</h2>
-            <p class="welcome-subtitle">Sign in to your account</p>
+            <h2 class="welcome-title">Bienvenue de retour</h2>
+            <p class="welcome-subtitle">Connectez-vous à votre compte</p>
         </div>
 
         @await Html.PartialAsync("_ErrorMessage", (string)ViewBag.ErrorMessage)
@@ -26,7 +26,7 @@
                            id="password" 
                            name="password" 
                            class="form-input" 
-                           placeholder="Enter 5-digit password"
+                           placeholder="Entrez le mot de passe à 5 chiffres"
                            maxlength="5" 
                            pattern="[0-9]{5}" 
                            inputmode="numeric"
@@ -36,7 +36,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-login">Sign In</button>
+            <button type="submit" class="btn-login">Se connecter</button>
         </form>
     </div>
 </div>

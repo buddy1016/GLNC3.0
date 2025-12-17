@@ -1,11 +1,11 @@
 @model List<glnc_webpart.Models.DriverGeolocation>
 @{
-    ViewData["Title"] = "Geolocation Tracking";
+    ViewData["Title"] = "Tracking de la localisation";
 }
 
 <div class="page-container">
     <div class="page-header">
-        <h1>Driver Geolocation Tracking</h1>
+        <h1>Tracking de la localisation des conducteurs</h1>
     </div>
 
     <!-- Driver Selection and Toggle Panel -->
@@ -15,9 +15,9 @@
                 <div class="card-body">
                     <div class="d-flex align-items-end gap-3 flex-wrap">
                         <div class="flex-grow-1" style="min-width: 200px;">
-                            <label class="form-label mb-1"><strong>Select Driver:</strong></label>
+                            <label class="form-label mb-1"><strong>Sélectionner un conducteur:</strong></label>
                             <select class="form-select" id="driverSelect">
-                                <option value="">All Drivers</option>
+                                <option value="">Tous les conducteurs</option>
                                 @foreach (var user in ViewBag.Users as List<glnc_webpart.Models.User> ?? new List<glnc_webpart.Models.User>())
                                 {
                                     <option value="@user.Id">@user.Name</option>
@@ -25,19 +25,19 @@
                             </select>
                         </div>
                         <div style="min-width: 300px;">
-                            <label class="form-label mb-1"><strong>Location Type:</strong></label>
+                            <label class="form-label mb-1"><strong>Type de localisation:</strong></label>
                             <div class="btn-group" role="group">
                                 <input type="radio" class="btn-check" name="locationType" id="driverLocation" value="driver" checked>
-                                <label class="btn btn-outline-primary" for="driverLocation">Last Location</label>
+                                <label class="btn btn-outline-primary" for="driverLocation">Dernière localisation</label>
                                 
                                 <input type="radio" class="btn-check" name="locationType" id="deliveryLocation" value="delivery">
-                                <label class="btn btn-outline-primary" for="deliveryLocation">Last Delivery Location</label>
+                                <label class="btn btn-outline-primary" for="deliveryLocation">Dernière localisation de livraison</label>
                             </div>
                         </div>
                         <div>
                             <label class="form-label mb-1" style="visibility: hidden;"><strong>Load</strong></label>
                             <button type="button" class="btn btn-primary d-block" onclick="loadLocationData()">
-                                <i class="bi bi-search"></i> Load
+                                <i class="bi bi-search"></i> Charger
                             </button>
                         </div>
                     </div>
@@ -60,12 +60,12 @@
                     <th>Latitude</th>
                     <th>Longitude</th>
                     <th>Altitude</th>
-                    <th>Date & Time</th>
+                    <th>Date & Heure</th>
                 </tr>
             </thead>
             <tbody id="locationTableBody">
                 <tr>
-                    <td colspan="5" class="text-center text-muted">Please select a driver and click Load to view location data</td>
+                    <td colspan="5" class="text-center text-muted">Veuillez sélectionner un conducteur et cliquer sur Charger pour voir les données de localisation</td>
                 </tr>
             </tbody>
         </table>
@@ -147,14 +147,14 @@
                     
                     // Add marker
                     var popupText = isDeliveryLocation ? 
-                        'Last Delivery Location<br>' + dateTime : 
-                        'Last Location<br>' + dateTime;
+                        'Dernière localisation de livraison<br>' + dateTime : 
+                        'Dernière localisation<br>' + dateTime;
                     addMarker(lat, lng, popupText);
                 } else {
-                    alert(response.message || 'No location found');
+                    alert(response.message || 'Aucune localisation trouvée');
                 }
             }).fail(function() {
-                alert('Error loading location');
+                alert('Erreur lors du chargement de la localisation');
             });
 
             // Load location history
@@ -167,8 +167,11 @@
                     var tbody = $('#locationTableBody');
                     tbody.empty();
                     
+                    // Remove existing pagination if any
+                    $('#locationTable_pagination').remove();
+                    
                     if (response.data.length === 0) {
-                        tbody.append('<tr><td colspan="5" class="text-center">No location history found</td></tr>');
+                        tbody.append('<tr><td colspan="5" class="text-center">Aucun historique de localisation trouvé</td></tr>');
                     } else {
                         response.data.forEach(function(loc) {
                             var row = '<tr class="location-row" style="cursor: pointer;" ' +
@@ -204,17 +207,26 @@
                             map.setView([lat, lng], 15);
                             
                             // Add marker
-                            var popupText = 'Location ID: ' + $(this).find('td:first').text() + '<br>' +
-                                          'Lat: ' + lat + ', Lng: ' + lng + '<br>' +
-                                          'Date & Time: ' + dateTime;
+                            var popupText = 'ID de la localisation: ' + $(this).find('td:first').text() + '<br>' +
+                                          'Latitude: ' + lat + ', Longitude: ' + lng + '<br>' +
+                                          'Date & Heure: ' + dateTime;
                             addMarker(lat, lng, popupText);
                         });
+                        
+                        // Initialize pagination after table is populated
+                        if (typeof initPagination === 'function') {
+                            initPagination('#locationTable', 10);
+                        }
                     }
                 } else {
                     $('#locationTableBody').html('<tr><td colspan="5" class="text-center">' + (response.message || 'No location history found') + '</td></tr>');
+                    // Remove existing pagination if any
+                    $('#locationTable_pagination').remove();
                 }
             }).fail(function() {
                 $('#locationTableBody').html('<tr><td colspan="5" class="text-center text-danger">Error loading location history</td></tr>');
+                // Remove existing pagination if any
+                $('#locationTable_pagination').remove();
             });
         }
     </script>

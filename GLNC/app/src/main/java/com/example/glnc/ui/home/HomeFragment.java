@@ -133,14 +133,14 @@ public class HomeFragment extends Fragment {
         // Cancelled or completed deliveries require no action
         if (delivery.isInProgress()) {
             // Show buttons for in-progress deliveries
-            dialogBinding.returnButton.setVisibility(View.VISIBLE);
+//            dialogBinding.returnButton.setVisibility(View.VISIBLE);
             dialogBinding.signButton.setVisibility(View.VISIBLE);
             
             // Setup Return button
-            dialogBinding.returnButton.setOnClickListener(v -> {
-                dialog.dismiss();
-                sendCancelDeliveryRequest(delivery);
-            });
+//            dialogBinding.returnButton.setOnClickListener(v -> {
+//                dialog.dismiss();
+//                sendCancelDeliveryRequest(delivery);
+//            });
             
             // Setup Sign button
             dialogBinding.signButton.setOnClickListener(v -> {
@@ -152,7 +152,7 @@ public class HomeFragment extends Fragment {
             });
         } else {
             // Hide buttons for cancelled or completed deliveries
-            dialogBinding.returnButton.setVisibility(View.GONE);
+//            dialogBinding.returnButton.setVisibility(View.GONE);
             dialogBinding.signButton.setVisibility(View.GONE);
         }
         
@@ -210,80 +210,80 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    private void sendCancelDeliveryRequest(Delivery delivery) {
-        if (delivery.getId() == null || delivery.getId().isEmpty()) {
-            Toast.makeText(getContext(), "Invalid delivery ID", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        new Thread(() -> {
-            try {
-                // Create JSON body with delivery id
-                JSONObject jsonBody = new JSONObject();
-                jsonBody.put("id", delivery.getId());
-
-                RequestBody body = RequestBody.create(
-                        jsonBody.toString(),
-                        MediaType.parse("application/json; charset=utf-8")
-                );
-
-                // Build request
-                Request request = new Request.Builder()
-                        .url(global.serverUrl + "/app/delivery_cancel")
-                        .post(body)
-                        .addHeader("Content-Type", "application/json")
-                        .build();
-
-                // Execute request asynchronously
-                httpClient.newCall(request).enqueue(new Callback() {
-                    @Override
-                    public void onFailure(Call call, IOException e) {
-                        requireActivity().runOnUiThread(() -> {
-                            Toast.makeText(getContext(), 
-                                    "Failed to cancel delivery: " + e.getMessage(), 
-                                    Toast.LENGTH_SHORT).show();
-                            Log.e("HomeFragment", "Failed to cancel delivery", e);
-                        });
-                    }
-
-                    @Override
-                    public void onResponse(Call call, Response response) throws IOException {
-                        requireActivity().runOnUiThread(() -> {
-                            if (response.isSuccessful()) {
-                                // Show notification to driver
-                                showCancellationNotification(delivery);
-                                
-                                Toast.makeText(getContext(), 
-                                        "Delivery cancelled successfully", 
-                                        Toast.LENGTH_SHORT).show();
-                                // Refresh the delivery list
-                                refreshDeliveries();
-                            } else {
-                                String responseBody = null;
-                                try {
-                                    responseBody = response.body() != null ?
-                                            response.body().string() : "";
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                                Toast.makeText(getContext(), 
-                                        "Failed to cancel delivery: " + response.code(), 
-                                        Toast.LENGTH_SHORT).show();
-                                Log.e("HomeFragment", "Failed to cancel delivery: " + responseBody);
-                            }
-                        });
-                    }
-                });
-            } catch (Exception e) {
-                requireActivity().runOnUiThread(() -> {
-                    Toast.makeText(getContext(), 
-                            "Error: " + e.getMessage(), 
-                            Toast.LENGTH_SHORT).show();
-                    Log.e("HomeFragment", "Error cancelling delivery", e);
-                });
-            }
-        }).start();
-    }
+//    private void sendCancelDeliveryRequest(Delivery delivery) {
+//        if (delivery.getId() == null || delivery.getId().isEmpty()) {
+//            Toast.makeText(getContext(), "Invalid delivery ID", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//
+//        new Thread(() -> {
+//            try {
+//                // Create JSON body with delivery id
+//                JSONObject jsonBody = new JSONObject();
+//                jsonBody.put("id", delivery.getId());
+//
+//                RequestBody body = RequestBody.create(
+//                        jsonBody.toString(),
+//                        MediaType.parse("application/json; charset=utf-8")
+//                );
+//
+//                // Build request
+//                Request request = new Request.Builder()
+//                        .url(global.serverUrl + "/app/delivery_cancel")
+//                        .post(body)
+//                        .addHeader("Content-Type", "application/json")
+//                        .build();
+//
+//                // Execute request asynchronously
+//                httpClient.newCall(request).enqueue(new Callback() {
+//                    @Override
+//                    public void onFailure(Call call, IOException e) {
+//                        requireActivity().runOnUiThread(() -> {
+//                            Toast.makeText(getContext(),
+//                                    "Failed to cancel delivery: " + e.getMessage(),
+//                                    Toast.LENGTH_SHORT).show();
+//                            Log.e("HomeFragment", "Failed to cancel delivery", e);
+//                        });
+//                    }
+//
+//                    @Override
+//                    public void onResponse(Call call, Response response) throws IOException {
+//                        requireActivity().runOnUiThread(() -> {
+//                            if (response.isSuccessful()) {
+//                                // Show notification to driver
+//                                showCancellationNotification(delivery);
+//
+//                                Toast.makeText(getContext(),
+//                                        "Delivery cancelled successfully",
+//                                        Toast.LENGTH_SHORT).show();
+//                                // Refresh the delivery list
+//                                refreshDeliveries();
+//                            } else {
+//                                String responseBody = null;
+//                                try {
+//                                    responseBody = response.body() != null ?
+//                                            response.body().string() : "";
+//                                } catch (IOException e) {
+//                                    throw new RuntimeException(e);
+//                                }
+//                                Toast.makeText(getContext(),
+//                                        "Failed to cancel delivery: " + response.code(),
+//                                        Toast.LENGTH_SHORT).show();
+//                                Log.e("HomeFragment", "Failed to cancel delivery: " + responseBody);
+//                            }
+//                        });
+//                    }
+//                });
+//            } catch (Exception e) {
+//                requireActivity().runOnUiThread(() -> {
+//                    Toast.makeText(getContext(),
+//                            "Error: " + e.getMessage(),
+//                            Toast.LENGTH_SHORT).show();
+//                    Log.e("HomeFragment", "Error cancelling delivery", e);
+//                });
+//            }
+//        }).start();
+//    }
 
     @Override
     public void onResume() {

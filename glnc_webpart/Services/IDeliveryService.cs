@@ -10,7 +10,7 @@ namespace glnc_webpart.Services
         Task<Delivery> CreateDeliveryAsync(Delivery delivery);
         Task<Delivery> UpdateDeliveryAsync(Delivery delivery);
         Task<bool> CompleteDeliveryAsync(int deliveryId, string signature, string invoiceImage, string comment, double weight, int satisfaction);
-        Task<bool> CancelDeliveryAsync(int deliveryId);
+        Task<bool> CancelDeliveryAsync(int deliveryId, string? comment = null);
         Task<bool> DeleteDeliveryAsync(int id);
     }
 }

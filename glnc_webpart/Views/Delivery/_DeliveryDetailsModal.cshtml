@@ -19,6 +19,13 @@
         <p><strong>Retour:</strong> @(Model.ReturnFlag ? "Oui" : "Non")</p>
     </div>
 </div>
+@if (Model.ReturnFlag && !string.IsNullOrEmpty(Model.Description))
+{
+    <div class="mt-3 alert alert-warning">
+        <strong>Raison du retour:</strong>
+        <p class="mb-0">@Model.Description</p>
+    </div>
+}
 @if (!string.IsNullOrEmpty(Model.Comment))
 {
     <div class="mt-3">

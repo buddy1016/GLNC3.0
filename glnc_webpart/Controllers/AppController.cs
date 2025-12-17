@@ -308,12 +308,12 @@ namespace glnc_webpart.Controllers
                     return Ok(new { success = true, message = "Delivery is already cancelled." });
                 }
 
-                // Cancel the delivery (set return_flag to 1)
-                var result = await _deliveryService.CancelDeliveryAsync(request.Id);
+                // Cancel the delivery (set return_flag to 1) and store cancellation comment
+                var result = await _deliveryService.CancelDeliveryAsync(request.Id, request.Comment);
 
                 if (result)
                 {
-                    _logger.LogInformation("Delivery {Id} cancelled successfully", request.Id);
+                    _logger.LogInformation("Delivery {Id} cancelled successfully with comment: {Comment}", request.Id, request.Comment ?? "No comment");
                     return Ok(new { success = true, message = "Delivery cancelled successfully." });
                 }
                 else
@@ -556,6 +556,9 @@ namespace glnc_webpart.Controllers
     {
         [JsonPropertyName("id")]
         public int Id { get; set; }
+        
+        [JsonPropertyName("comment")]
+        public string? Comment { get; set; }
     }
 
     // Sign Delivery Request DTO

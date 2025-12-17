@@ -13,4 +13,6 @@
     <color name="light_gray_text">#FF9E9E9E</color>
     <color name="keypad_white">#FFFFFFFF</color>
     <color name="button_border_gray">#FFE0E0E0</color>
+    <color name="grisSombre">#FF424242</color>
+    <color name="blancCassé">#FFF5F5F5</color>
 </resources>

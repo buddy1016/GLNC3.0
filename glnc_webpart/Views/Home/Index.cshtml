@@ -29,8 +29,8 @@
 
 <div class="dashboard-page">
     <div class="dashboard-header">
-        <h1 class="dashboard-title">Dashboard</h1>
-        <p class="dashboard-subtitle">Welcome to Delivery Management System</p>
+        <h1 class="dashboard-title">Tableau de bord</h1>
+        <p class="dashboard-subtitle">Bienvenue dans le système de gestion des livraisons</p>
     </div>
 
     <!-- KPI Cards -->
@@ -41,7 +41,7 @@
             </div>
             <div class="kpi-content">
                 <div class="kpi-value">@totalDeliveries</div>
-                <div class="kpi-label">TOTAL DELIVERIES</div>
+                <div class="kpi-label">TOTAL DES LIVRAISONS</div>
             </div>
         </div>
 
@@ -51,7 +51,7 @@
             </div>
             <div class="kpi-content">
                 <div class="kpi-value">@completedDeliveries</div>
-                <div class="kpi-label">COMPLETED</div>
+                <div class="kpi-label">COMPLÉTÉES</div>
             </div>
         </div>
 
@@ -61,7 +61,7 @@
             </div>
             <div class="kpi-content">
                 <div class="kpi-value">@pendingDeliveries</div>
-                <div class="kpi-label">PENDING</div>
+                <div class="kpi-label">EN ATTENTE</div>
             </div>
         </div>
 
@@ -71,7 +71,7 @@
             </div>
             <div class="kpi-content">
                 <div class="kpi-value">@activeTrucks</div>
-                <div class="kpi-label">ACTIVE TRUCKS</div>
+                <div class="kpi-label">CAMIONS ACTIFS</div>
             </div>
         </div>
     </div>
@@ -81,7 +81,7 @@
         <!-- Delivery Status Overview Chart -->
         <div class="chart-card">
             <div class="card-header">
-                <h3 class="card-title">Delivery Status Overview</h3>
+                <h3 class="card-title">Aperçu des statuts des livraisons</h3>
             </div>
             <div class="card-body">
                 <canvas id="deliveryChart" style="max-height: 300px;"></canvas>
@@ -91,13 +91,13 @@
         <!-- Recent Activities -->
         <div class="activities-card">
             <div class="card-header">
-                <h3 class="card-title">Recent Activities</h3>
+                <h3 class="card-title">Activités récentes</h3>
             </div>
             <div class="card-body">
                 <div class="activity-list">
                     @if (activities.Count == 0)
                     {
-                        <div class="text-muted">No recent activities.</div>
+                        <div class="text-muted">Aucune activité récente.</div>
                     }
                     else
                     {
@@ -122,18 +122,18 @@
     <!-- Recent Deliveries Table -->
     <div class="deliveries-card">
         <div class="card-header">
-            <h3 class="card-title">Recent Deliveries</h3>
-            <a asp-controller="Delivery" asp-action="Index" class="btn-view-all">View All</a>
+            <h3 class="card-title">Livraisons récentes</h3>
+            <a asp-controller="Delivery" asp-action="Index" class="btn-view-all">Voir toutes</a>
         </div>
         <div class="card-body">
             <table class="deliveries-table table-centered">
                 <thead>
                     <tr>
-                        <th>CUSTOMER</th>
-                        <th>ADDRESS</th>
-                        <th>STATUS</th>
-                        <th>DRIVER</th>
-                        <th>DATE</th>
+                        <th>CLIENT</th>
+                        <th>ADRESSE</th>
+                        <th>STATUT</th>
+                        <th>CONDUCTEUR</th>
+                        <th>DATE DE RENDEZ-VOUS</th>
                         <th>ACTIONS</th>
                     </tr>
                 </thead>
@@ -146,15 +146,15 @@
                             <td>
                                 @if (delivery.DateTimeArrival.HasValue)
                                 {
-                                    <span class="status-badge status-completed">Completed</span>
+                                    <span class="status-badge status-completed">Complété</span>
                                 }
                                 else if (delivery.DateTimeAccept.HasValue)
                                 {
-                                    <span class="status-badge status-in-progress">In Progress</span>
+                                    <span class="status-badge status-in-progress">En cours</span>
                                 }
                                 else
                                 {
-                                    <span class="status-badge status-pending">Pending</span>
+                                    <span class="status-badge status-pending">En attente</span>
                                 }
                             </td>
                             <td>@(delivery.User?.Name ?? "-")</td>

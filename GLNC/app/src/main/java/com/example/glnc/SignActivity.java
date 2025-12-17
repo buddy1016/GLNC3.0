@@ -10,7 +10,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -45,7 +44,6 @@ public class SignActivity extends AppCompatActivity {
 
     private static final int CAMERA_PERMISSION_REQUEST = 100;
     private static final int CAMERA_CAPTURE_REQUEST = 101;
-    private static final int GALLERY_PICK_REQUEST = 102;
 
     private ImageView photoPreview;
     private android.widget.FrameLayout signatureContainer;
@@ -58,10 +56,11 @@ public class SignActivity extends AppCompatActivity {
     private Button submitButton;
     private Button cameraButton;
     private Button clearSignatureButton;
+    private EditText cancelCommentInput;
+    private Button cancelButton;
 
     private String deliveryId;
     private String selectedSatisfaction = null;
-    private Uri photoUri;
     private OkHttpClient httpClient;
     private Global global = new Global();
     private android.app.ProgressDialog progressDialog;
@@ -101,9 +100,17 @@ public class SignActivity extends AppCompatActivity {
         submitButton = findViewById(R.id.submit_button);
         cameraButton = findViewById(R.id.camera_button);
         clearSignatureButton = findViewById(R.id.clear_signature_button);
+        cancelCommentInput = findViewById(R.id.cancel_comment_input);
+        cancelButton = findViewById(R.id.cancel_button);
 
-        // Setup camera button - show options for camera or gallery
-        cameraButton.setOnClickListener(v -> showImageSourceDialog());
+        // Setup camera button - directly open camera
+        cameraButton.setOnClickListener(v -> {
+            if (checkCameraPermission()) {
+                openCamera();
+            } else {
+                requestCameraPermission();
+            }
+        });
 
         // Setup clear signature button
         clearSignatureButton.setOnClickListener(v -> {
@@ -118,6 +125,9 @@ public class SignActivity extends AppCompatActivity {
 
         // Setup submit button
         submitButton.setOnClickListener(v -> submitDelivery());
+
+        // Setup cancel button
+        cancelButton.setOnClickListener(v -> cancelDelivery());
 
         // Monitor signature drawing
         signatureView.setOnSignatureChangeListener(() -> updateSubmitButtonState());
@@ -160,25 +170,6 @@ public class SignActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST);
     }
 
-    private void showImageSourceDialog() {
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-        builder.setTitle("Select Image Source");
-        builder.setItems(new CharSequence[]{"Take Photo", "Choose from Gallery"}, (dialog, which) -> {
-            if (which == 0) {
-                // Take photo
-                if (checkCameraPermission()) {
-                    openCamera();
-                } else {
-                    requestCameraPermission();
-                }
-            } else {
-                // Choose from gallery
-                openGallery();
-            }
-        });
-        builder.show();
-    }
-
     private void openCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -188,15 +179,6 @@ public class SignActivity extends AppCompatActivity {
         }
     }
 
-    private void openGallery() {
-        Intent pickPhoto = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        pickPhoto.setType("image/*");
-        if (pickPhoto.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(pickPhoto, GALLERY_PICK_REQUEST);
-        } else {
-            Toast.makeText(this, "Gallery not available", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -224,23 +206,6 @@ public class SignActivity extends AppCompatActivity {
                         photoPreview.setVisibility(View.VISIBLE);
                         cameraButton.setText("📷 Retake Photo");
                         updateSubmitButtonState();
-                    }
-                }
-            } else if (requestCode == GALLERY_PICK_REQUEST) {
-                // Handle gallery result
-                if (data != null && data.getData() != null) {
-                    Uri imageUri = data.getData();
-                    try {
-                        Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
-                        if (imageBitmap != null) {
-                            photoPreview.setImageBitmap(imageBitmap);
-                            photoPreview.setVisibility(View.VISIBLE);
-                            cameraButton.setText("📷 Retake Photo");
-                            updateSubmitButtonState();
-                        }
-                    } catch (IOException e) {
-                        Log.e("SignActivity", "Error loading image from gallery", e);
-                        Toast.makeText(this, "Error loading image", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -390,6 +355,91 @@ public class SignActivity extends AppCompatActivity {
         }
     }
 
+    private void cancelDelivery() {
+        if (deliveryId == null || deliveryId.isEmpty()) {
+            Toast.makeText(this, "Invalid delivery ID", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String cancelComment = cancelCommentInput.getText().toString().trim();
+        if (cancelComment.isEmpty()) {
+            Toast.makeText(this, "Veuillez entrer une raison pour l'annulation", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Show progress dialog
+        showProgressDialog("Annulation de la livraison...");
+
+        new Thread(() -> {
+            try {
+                // Create JSON body with delivery id and comment
+                JSONObject jsonBody = new JSONObject();
+                jsonBody.put("id", deliveryId);
+                jsonBody.put("comment", cancelComment);
+
+                RequestBody body = RequestBody.create(
+                        jsonBody.toString(),
+                        MediaType.parse("application/json; charset=utf-8")
+                );
+
+                // Build request
+                Request request = new Request.Builder()
+                        .url(global.serverUrl + "/app/delivery_cancel")
+                        .post(body)
+                        .addHeader("Content-Type", "application/json")
+                        .build();
+
+                // Execute request
+                httpClient.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        runOnUiThread(() -> {
+                            dismissProgressDialog();
+                            Toast.makeText(SignActivity.this,
+                                    "Échec de l'annulation: " + e.getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                            Log.e("SignActivity", "Failed to cancel delivery", e);
+                        });
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        runOnUiThread(() -> {
+                            dismissProgressDialog();
+                            if (response.isSuccessful()) {
+                                Toast.makeText(SignActivity.this,
+                                        "Livraison annulée avec succès",
+                                        Toast.LENGTH_SHORT).show();
+                                // Close activity and return to previous screen
+                                setResult(RESULT_OK);
+                                finish();
+                            } else {
+                                String responseBody = null;
+                                try {
+                                    responseBody = response.body() != null ? response.body().string() : "";
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                Toast.makeText(SignActivity.this,
+                                        "Échec de l'annulation: " + response.code(),
+                                        Toast.LENGTH_SHORT).show();
+                                Log.e("SignActivity", "Failed to cancel delivery: " + responseBody);
+                            }
+                        });
+                    }
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    dismissProgressDialog();
+                    Toast.makeText(SignActivity.this,
+                            "Erreur: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                    Log.e("SignActivity", "Error cancelling delivery", e);
+                });
+            }
+        }).start();
+    }
+
     private void sendDeliveryDataToBackend(String signatureBase64, String photoBase64, String comment, String weight) {
         try {
             // Create JSON body
@@ -481,7 +531,7 @@ public class SignActivity extends AppCompatActivity {
 
         Log.d("SignActivity", "Requesting GPS location for sign coordinate...");
         
-        // Get current location using GPS
+        // Get current location using GPS with force fresh (skip cached/mock locations)
         Global.getCurrentLocation(this, new Global.LocationCallback() {
             @Override
             public void onLocationReceived(double latitude, double longitude, double altitude) {
@@ -508,7 +558,7 @@ public class SignActivity extends AppCompatActivity {
                     Log.e("SignActivity", "No location available (GPS failed and no stored location)");
                 }
             }
-        });
+        }, true); // Force fresh GPS - skip cached/mock locations
     }
 
     private void sendCoordinateToBackend(String deliveryId, double latitude, double longitude, double altitude) {

@@ -101,7 +101,7 @@ function initPlanningCalendar() {
                     const timeElement = info.el.querySelector('.fc-event-time');
                     const contentElement = info.el.querySelector('.fc-content');
                     
-                    // Insert image before the time element
+                    // Insert image before the time element0
                     if (timeElement) {
                         // Insert before time element's parent (fc-content) or before time element itself
                         if (timeElement.parentElement && timeElement.parentElement === contentElement) {

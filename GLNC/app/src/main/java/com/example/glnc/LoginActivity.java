@@ -5,7 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.location.Location;
+// Note: Using custom Location class (com.example.glnc.Location), not android.location.Location
+// Use fully qualified name android.location.Location when needed for Android SDK Location objects
 import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,9 +23,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 import com.example.glnc.databinding.ActivityLoginBinding;
 
@@ -55,8 +53,9 @@ public class LoginActivity extends AppCompatActivity {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
     private OkHttpClient httpClient;
     private Global global = new Global();
-    private FusedLocationProviderClient fusedLocationClient;
-    
+    // Note: Don't create separate Location instance - use Global.getLocation() instead
+    // MainActivity will handle continuous GPS tracking
+
     // Store current location data
     private double currentLatitude = 0.0;
     private double currentLongitude = 0.0;
@@ -79,11 +78,11 @@ public class LoginActivity extends AppCompatActivity {
                 .build();
 
         // Update time display
-        updateTime();
+//        updateTime();
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
-                updateTime();
+//                updateTime();
                 new Handler(Looper.getMainLooper()).postDelayed(this, 60000); // Update every minute
             }
         }, 60000);
@@ -119,10 +118,9 @@ public class LoginActivity extends AppCompatActivity {
         // Initialize access code display
         updateAccessCodeDisplay();
 
-        // Initialize location client
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
         // Request location permission and get location
+        // Note: Don't create Location instance here - use Global.getLocation() instead
+        // MainActivity will handle continuous GPS tracking
         requestLocationPermissionAndGetLocation();
     }
 
@@ -203,8 +201,8 @@ public class LoginActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(LoginActivity.this, 
-                                            "Login failed: " + e.getMessage(), 
+                                    Toast.makeText(LoginActivity.this,
+                                            "Login failed: " + e.getMessage(),
                                             Toast.LENGTH_SHORT).show();
                                 }
                             });
@@ -212,9 +210,9 @@ public class LoginActivity extends AppCompatActivity {
 
                         @Override
                         public void onResponse(Call call, Response response) throws IOException {
-                            final String responseBody = response.body() != null ? 
+                            final String responseBody = response.body() != null ?
                                     response.body().string() : "";
-                            
+
                             // Handle response on main thread
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -223,11 +221,11 @@ public class LoginActivity extends AppCompatActivity {
                                         try {
                                             // Parse user information from login response
                                             JSONObject responseJson = new JSONObject(responseBody);
-                                            
+
                                             // Try different possible field names for user_id and user_name
                                             String userId = "";
                                             String userName = "";
-                                            
+
                                             if (responseJson.has("user_id")) {
                                                 userId = responseJson.optString("user_id", "");
                                             } else if (responseJson.has("userId")) {
@@ -243,7 +241,7 @@ public class LoginActivity extends AppCompatActivity {
                                                     }
                                                 }
                                             }
-                                            
+
                                             // Try different possible field names for user name
                                             if (responseJson.has("name")) {
                                                 userName = responseJson.optString("name", "");
@@ -263,15 +261,15 @@ public class LoginActivity extends AppCompatActivity {
                                                     }
                                                 }
                                             }
-                                            
+
                                             if (!userId.isEmpty()) {
                                                 // Store user_id, user_name and location for logout use
                                                 storeUserData(userId, userName);
-                                                
+
                                                 // Send attendance data type 1 (login)
                                                 sendAttendanceData(userId, 1);
                                             }
-                                            
+
                                             // Navigate to MainActivity (home screen)
                                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                             startActivity(intent);
@@ -284,8 +282,8 @@ public class LoginActivity extends AppCompatActivity {
                                             finish();
                                         }
                                     } else {
-                                        Toast.makeText(LoginActivity.this, 
-                                                "Login failed: " + responseBody, 
+                                        Toast.makeText(LoginActivity.this,
+                                                "Login failed: " + responseBody,
                                                 Toast.LENGTH_SHORT).show();
                                     }
                                 }
@@ -296,8 +294,8 @@ public class LoginActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(LoginActivity.this, 
-                                    "Error: " + e.getMessage(), 
+                            Toast.makeText(LoginActivity.this,
+                                    "Error: " + e.getMessage(),
                                     Toast.LENGTH_SHORT).show();
                         }
                     });
@@ -306,11 +304,11 @@ public class LoginActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void updateTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-        String currentTime = sdf.format(new Date());
-        binding.timeTextView.setText(currentTime);
-    }
+//    private void updateTime() {
+//        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
+//        String currentTime = sdf.format(new Date());
+//        binding.timeTextView.setText(currentTime);
+//    }
 
     private void requestLocationPermissionAndGetLocation() {
         // Check if location permission is granted
@@ -345,18 +343,35 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Use Global.getCurrentLocation for better GPS accuracy
-        Global.getCurrentLocation(this, new Global.LocationCallback() {
-            @Override
-            public void onLocationReceived(double latitude, double longitude, double altitude) {
-                // Store location data
-                currentLatitude = latitude;
-                currentLongitude = longitude;
-                currentAltitude = altitude;
+        // Get location from Global storage (set by MainActivity's Location instance)
+        // LoginActivity doesn't create its own Location instance to avoid conflicts
+        android.location.Location storedLocation = Global.getLocation();
+        if (storedLocation != null) {
+            currentLatitude = storedLocation.getLatitude();
+            currentLongitude = storedLocation.getLongitude();
+            currentAltitude = storedLocation.getAltitude();
+            hasLocation = true;
+            Log.d("LoginActivity", "Location obtained from Global storage: " + currentLatitude + ", " + currentLongitude);
+            
+            // If we have pending attendance data to send, send it now
+            if (pendingAttendanceData && !pendingUserId.isEmpty()) {
+                sendAttendanceDataInternal(pendingUserId, 1);
+                pendingAttendanceData = false;
+                pendingUserId = "";
+            }
+        } else {
+            // No location in Global storage yet - try SharedPreferences as fallback
+            SharedPreferences prefs = getSharedPreferences("GLNC_Prefs", Context.MODE_PRIVATE);
+            float lat = prefs.getFloat("latitude", 0.0f);
+            float lon = prefs.getFloat("longitude", 0.0f);
+            float alt = prefs.getFloat("altitude", 0.0f);
+            
+            if (lat != 0.0f || lon != 0.0f) {
+                currentLatitude = lat;
+                currentLongitude = lon;
+                currentAltitude = alt;
                 hasLocation = true;
-                
-
-                Log.d("LoginActivity", "===================================");
+                Log.d("LoginActivity", "Location obtained from SharedPreferences: " + currentLatitude + ", " + currentLongitude);
                 
                 // If we have pending attendance data to send, send it now
                 if (pendingAttendanceData && !pendingUserId.isEmpty()) {
@@ -364,14 +379,12 @@ public class LoginActivity extends AppCompatActivity {
                     pendingAttendanceData = false;
                     pendingUserId = "";
                 }
-            }
-
-            @Override
-            public void onLocationError(String error) {
-                Log.e("LoginActivity", "Failed to get location: " + error);
+            } else {
+                // No location available yet - wait for MainActivity to initialize GPS
+                Log.w("LoginActivity", "No location available yet. MainActivity will initialize GPS tracking.");
                 hasLocation = false;
             }
-        });
+        }
     }
 
     private void showLocationAlert(String title, String message) {
@@ -399,16 +412,16 @@ public class LoginActivity extends AppCompatActivity {
     private void sendAttendanceData(String userId, int type) {
 
         Log.d("LoginActivity", "Current Coordinates: " + currentLatitude + ", " + currentLongitude);
-        
+
         // Ensure we have location data
         if (!hasLocation || (currentLatitude == 0.0 && currentLongitude == 0.0)) {
             // Store as pending to send when location is received
             pendingAttendanceData = true;
             pendingUserId = userId;
-            
+
             // Try to get location again if not available
             getCurrentLocation();
-            
+
             // Also set up a delayed check as backup (in case location callback doesn't fire)
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
@@ -424,10 +437,10 @@ public class LoginActivity extends AppCompatActivity {
             }, 2000); // Wait 2 seconds
             return;
         }
-        
+
         sendAttendanceDataInternal(userId, type);
     }
-    
+
     private void sendAttendanceDataInternal(String userId, int type) {
 
         new Thread(new Runnable() {
@@ -446,7 +459,7 @@ public class LoginActivity extends AppCompatActivity {
                     jsonBody.put("alti", currentAltitude);
                     jsonBody.put("type", type);
                     jsonBody.put("user_id", userId);
-                    
+
 
                     Log.d("LoginActivity", "=========================================");
 
@@ -497,5 +510,6 @@ public class LoginActivity extends AppCompatActivity {
         if (resetHandler != null) {
             resetHandler.removeCallbacks(resetRunnable);
         }
+        // Note: No Location instance to stop - MainActivity handles GPS tracking
     }
 }
