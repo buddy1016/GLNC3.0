@@ -1,6 +1,7 @@
 using glnc_webpart.Data;
 using glnc_webpart.Models;
 using Microsoft.EntityFrameworkCore;
+using static glnc_webpart.Services.TimezoneHelper;
 
 namespace glnc_webpart.Services
 {
@@ -93,7 +94,7 @@ namespace glnc_webpart.Services
             if (delivery == null)
                 return false;
 
-            var currentTime = DateTime.Now;
+            var currentTime = TimezoneHelper.GetNewCaledoniaTime();
             delivery.DateTimeAccept = currentTime;
             delivery.DateTimeArrival = currentTime;
             delivery.SignClient = signature;

@@ -1,6 +1,7 @@
 let calendar;
 let currentView = 'month';
 let currentDate = new Date();
+let originalDeliveryData = null; // Store full original delivery data when editing
 
 // Initialize the planning calendar
 function initPlanningCalendar() {
@@ -9,6 +10,7 @@ function initPlanningCalendar() {
     calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'timeGridWeek',
         locale: 'fr',
+        timeZone: 'Pacific/Noumea', // New Caledonia timezone (UTC+11)
         headerToolbar: false,
         height: 'auto',
         slotMinTime: '05:00:00',
@@ -376,6 +378,12 @@ function createDelivery(start, end, selectInfo) {
         // Hide conflict warning
         document.getElementById('truckConflictWarning').style.display = 'none';
         
+        // Hide delete button for new deliveries
+        document.getElementById('deleteDeliveryBtn').style.display = 'none';
+        
+        // Reset original delivery data for new deliveries
+        originalDeliveryData = null;
+        
         // Unselect the calendar selection before opening modal
         calendar.unselect();
         
@@ -424,6 +432,9 @@ function editDelivery(event) {
             const delivery = response.data || response;
             document.getElementById('deliveryId').value = delivery.id;
             
+            // Store full original delivery data for preserving fields not in modal
+            originalDeliveryData = delivery;
+            
             // Set driver, truck, and dates (disabled)
             const driverSelect = document.getElementById('modalDriver');
             const truckSelect = document.getElementById('modalTruck');
@@ -434,9 +445,9 @@ function editDelivery(event) {
             driverSelect.disabled = true;
             truckSelect.value = delivery.truckId;
             truckSelect.disabled = true;
-            appointmentInput.value = formatDateTimeLocal(new Date(delivery.dateTimeAppointment));
+            appointmentInput.value = formatDateTimeLocal(parseNewCaledoniaDate(delivery.dateTimeAppointment));
             appointmentInput.disabled = true;
-            leaveInput.value = formatDateTimeLocal(new Date(delivery.dateTimeLeave));
+            leaveInput.value = formatDateTimeLocal(parseNewCaledoniaDate(delivery.dateTimeLeave));
             leaveInput.disabled = true;
             
             // Fill other fields (only fields that exist in the form)
@@ -457,6 +468,10 @@ function editDelivery(event) {
             
             // Hide conflict warning for editing (fields are disabled anyway)
             document.getElementById('truckConflictWarning').style.display = 'none';
+            
+            // Show delete button for existing deliveries
+            document.getElementById('deleteDeliveryBtn').style.display = 'inline-block';
+            
             modal.show();
         },
         error: function() {
@@ -550,18 +565,74 @@ function saveDelivery() {
         return;
     }
 
+    // Get delivery ID from the form
+    const deliveryId = document.getElementById('deliveryId').value;
+    const currentClientName = data['Client'] ? data['Client'].trim() : '';
+    
+    // Determine if we're editing an existing delivery
+    // If deliveryId exists and is not '0', we're editing - ALWAYS UPDATE
+    // If deliveryId is '0' or missing, we're creating - CREATE NEW
+    const isEditing = deliveryId && deliveryId !== '0' && deliveryId !== '';
+    
+    
+    // Prepare the request
+    let requestUrl;
+    let requestData;
+    let requestType;
+    
+    if (isEditing) {
+        // ALWAYS UPDATE existing delivery when in edit mode
+        requestUrl = '/Delivery/Edit';
+        requestType = 'POST';
+        
+        // Build complete delivery object for update, preserving fields not in modal
+        requestData = {
+            Id: parseInt(deliveryId),
+            UserId: parseInt(data['UserId']),
+            TruckId: parseInt(data['TruckId']),
+            DateTimeAppointment: toNewCaledoniaISOString(new Date(data['DateTimeAppointment'])),
+            DateTimeLeave: toNewCaledoniaISOString(new Date(data['DateTimeLeave'])),
+            SupplierId: parseInt(data['SupplierId']),
+            Client: currentClientName,
+            Address: data['Address'] ? data['Address'].trim() : '',
+            Contacts: data['Contacts'] ? data['Contacts'].trim() : '',
+            Invoice: data['Invoice'] ? data['Invoice'].trim() : '',
+            Weight: parseFloat(data['Weight']),
+            ReturnFlag: originalDeliveryData ? (originalDeliveryData.returnFlag || false) : (data['ReturnFlag'] === 'true' || data['ReturnFlag'] === true),
+            // Preserve fields not in modal from original delivery (using camelCase from API response)
+            DateTimeAccept: originalDeliveryData ? (originalDeliveryData.dateTimeAccept ? toNewCaledoniaISOString(parseNewCaledoniaDate(originalDeliveryData.dateTimeAccept)) : null) : null,
+            DateTimeArrival: originalDeliveryData ? (originalDeliveryData.dateTimeArrival ? toNewCaledoniaISOString(parseNewCaledoniaDate(originalDeliveryData.dateTimeArrival)) : null) : null,
+            Description: originalDeliveryData ? (originalDeliveryData.description || null) : null,
+            SignClient: originalDeliveryData ? (originalDeliveryData.signClient || null) : null,
+            SatisfactionClient: originalDeliveryData ? (originalDeliveryData.satisfactionClient || null) : null,
+            Comment: originalDeliveryData ? (originalDeliveryData.comment || '') : '',
+            InvoiceImage: originalDeliveryData ? (originalDeliveryData.invoiceImage || null) : null
+        };
+    } else {
+        // CREATE new delivery via Planning/Create endpoint (only when creating from scratch)
+        requestUrl = '/Planning/Create';
+        requestType = 'POST';
+        // Ensure Id is set to '0' for new deliveries
+        requestData = Object.assign({}, data);
+        requestData['Id'] = '0';
+    }
+
     $.ajax({
-        url: '/Planning/Create',
-        type: 'POST',
-        data: data,
+        url: requestUrl,
+        type: requestType,
+        contentType: isEditing ? 'application/json' : 'application/x-www-form-urlencoded',
+        data: isEditing ? JSON.stringify(requestData) : requestData,
         headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
         success: function(response) {
             if (response.success) {
-                showToast('Delivery saved successfully', 'success');
+                const message = isEditing ? 'Livraison mise à jour avec succès' : 'Livraison réussie';
+                showToast(message, 'success');
                 bootstrap.Modal.getInstance(document.getElementById('deliveryModal')).hide();
+                // Reset original delivery data
+                originalDeliveryData = null;
                 refreshCalendar();
             } else {
-                let errorMsg = response.message || 'Error saving delivery';
+                let errorMsg = response.message || (isEditing ? 'Erreur lors de la mise à jour de la livraison' : 'Erreur lors de la création de la livraison');
                 if (response.errors && Array.isArray(response.errors)) {
                     const errorList = response.errors.map(e => e.Message || e).join('; ');
                     errorMsg += ': ' + errorList;
@@ -652,9 +723,9 @@ function updateDeliveryTime(event) {
         success: function(response) {
             const delivery = response.data || response;
             
-            // Update only the time fields
-            delivery.dateTimeAppointment = start.toISOString();
-            delivery.dateTimeLeave = end.toISOString();
+            // Update only the time fields (convert to UTC+11 format)
+            delivery.dateTimeAppointment = toNewCaledoniaISOString(start);
+            delivery.dateTimeLeave = toNewCaledoniaISOString(end);
             
             // Send update
             $.ajax({
@@ -687,12 +758,74 @@ function updateDeliveryTime(event) {
 }
 
 // Format datetime for input[type="datetime-local"]
+// FullCalendar handles timezone conversion, so we just format the date
 function formatDateTimeLocal(date) {
+    if (!date) return '';
+    
+    // If date is a string, parse it first (assume it's in UTC+11 format from server)
+    if (typeof date === 'string') {
+        // Server sends dates as "yyyy-MM-ddTHH:mm:ss" - treat as UTC+11
+        date = parseNewCaledoniaDate(date);
+    }
+    
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+// Parse date string from server (assumed to be in UTC+11) and convert to Date object
+// Server sends dates as "yyyy-MM-ddTHH:mm:ss" without timezone info
+function parseNewCaledoniaDate(dateString) {
+    if (!dateString) return null;
+    
+    // Parse the date string (assumed to be in UTC+11)
+    // Format: "yyyy-MM-ddTHH:mm:ss" or "yyyy-MM-dd HH:mm:ss"
+    const normalized = dateString.replace(' ', 'T').split('.')[0]; // Remove milliseconds if present
+    const parts = normalized.split('T');
+    if (parts.length !== 2) return new Date(dateString);
+    
+    const datePart = parts[0].split('-');
+    const timePart = parts[1].split(':');
+    
+    if (datePart.length !== 3 || timePart.length < 2) return new Date(dateString);
+    
+    const year = parseInt(datePart[0]);
+    const month = parseInt(datePart[1]) - 1; // JavaScript months are 0-indexed
+    const day = parseInt(datePart[2]);
+    const hours = parseInt(timePart[0]);
+    const minutes = parseInt(timePart[1] || 0);
+    const seconds = parseInt(timePart[2] || 0);
+    
+    // Create date assuming it's in UTC+11, then convert to local Date object
+    // We create it as if it's UTC, then adjust
+    const utcDate = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+    // The date string is in UTC+11, so we need to subtract 11 hours to get UTC
+    const utcTime = utcDate.getTime() - (11 * 60 * 60 * 1000);
+    return new Date(utcTime);
+}
+
+// Convert Date object to UTC+11 ISO string for server
+// Takes a Date object and converts it to a string as if it's in UTC+11
+function toNewCaledoniaISOString(date) {
+    if (!date) return null;
+    
+    // Get the date components in UTC
+    const utcTime = date.getTime();
+    // Add 11 hours to convert to UTC+11 representation
+    const ncTime = utcTime + (11 * 60 * 60 * 1000);
+    const ncDate = new Date(ncTime);
+    
+    // Format as ISO string (UTC+11)
+    const year = ncDate.getUTCFullYear();
+    const month = String(ncDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(ncDate.getUTCDate()).padStart(2, '0');
+    const hours = String(ncDate.getUTCHours()).padStart(2, '0');
+    const minutes = String(ncDate.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(ncDate.getUTCSeconds()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 }
 

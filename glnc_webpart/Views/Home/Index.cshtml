@@ -17,9 +17,9 @@
     // Build recent activities from delivery timeline (newest first, top 5)
     var activities = deliveries.SelectMany(d => new[]
         {
-            new { Time = d.DateTimeArrival, Text = $"Delivery completed ({d.Client})", Icon = "bi-check-circle", Color = "activity-green" },
-            new { Time = d.DateTimeAccept, Text = $"Delivery started ({d.Client})", Icon = "bi-clock", Color = "activity-yellow" },
-            new { Time = (DateTime?)d.DateTimeLeave, Text = $"Delivery created ({d.Client})", Icon = "bi-box-seam", Color = "activity-blue" }
+            new { Time = d.DateTimeArrival, Text = $"Livraison effectuée ({d.Client})", Icon = "bi-check-circle", Color = "activity-green" },
+            new { Time = d.DateTimeAccept, Text = $"La livraison a commencé ({d.Client})", Icon = "bi-clock", Color = "activity-yellow" },
+            new { Time = (DateTime?)d.DateTimeLeave, Text = $"Livraison créée ({d.Client})", Icon = "bi-box-seam", Color = "activity-blue" }
         })
         .Where(a => a.Time.HasValue)
         .OrderByDescending(a => a.Time.Value)

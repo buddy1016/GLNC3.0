@@ -44,9 +44,9 @@ public class DeliveryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             if (delivery.isInProgress()) {
                 section = "IN PROGRESS";
             } else if (delivery.isCompleted()) {
-                section = "COMPLETED";
+                section = "livré";
             } else if (delivery.isCancelled()) {
-                section = "CANCELLED";
+                section = "annulé";
             }
             
             if (section != null && !section.equals(currentSection)) {

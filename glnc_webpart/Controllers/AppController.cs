@@ -3,6 +3,7 @@ using glnc_webpart.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 using System.Text.Json.Serialization;
+using static glnc_webpart.Services.TimezoneHelper;
 
 namespace glnc_webpart.Controllers
 {
@@ -249,8 +250,8 @@ namespace glnc_webpart.Controllers
                 // Get deliveries for the user
                 var allDeliveries = await _deliveryService.GetDeliveriesByUserIdAsync(request.UserId);
 
-                // Filter deliveries for the next 3 days starting from today
-                var today = DateTime.Today;
+                // Filter deliveries for the next 3 days starting from today (in New Caledonia timezone)
+                var today = TimezoneHelper.GetNewCaledoniaTime().Date;
                 var threeDaysFromNow = today.AddDays(3).AddHours(23).AddMinutes(59).AddSeconds(59); // End of day 3
 
                 var deliveries = allDeliveries
@@ -472,7 +473,7 @@ namespace glnc_webpart.Controllers
                     Lati = request.Latitude,
                     Longi = request.Longitude,
                     Alti = request.Altitude,
-                    DateTime = DateTime.Now
+                    DateTime = TimezoneHelper.GetNewCaledoniaTime()
                 };
 
                 // Save to database

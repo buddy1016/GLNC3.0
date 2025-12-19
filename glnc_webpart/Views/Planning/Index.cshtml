@@ -151,6 +151,7 @@
                 </form>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="deleteDeliveryBtn" style="display: none;">Supprimer</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                 <button type="button" class="btn btn-primary" id="saveDeliveryBtn">Enregistrer</button>
             </div>
@@ -197,6 +198,38 @@
                 toastElement.remove();
             });
         }
+
+        // Delete delivery handler
+        document.getElementById('deleteDeliveryBtn').addEventListener('click', function() {
+            const deliveryId = document.getElementById('deliveryId').value;
+            
+            if (!deliveryId || deliveryId === '0') {
+                showToast('No delivery selected for deletion', 'error');
+                return;
+            }
+            
+            // Confirm deletion
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette livraison ? Cette action est irréversible.')) {
+                $.ajax({
+                    url: '/Delivery/Delete',
+                    type: 'POST',
+                    data: { id: deliveryId },
+                    headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('Livraison supprimée avec succès', 'success');
+                            bootstrap.Modal.getInstance(document.getElementById('deliveryModal')).hide();
+                            refreshCalendar();
+                        } else {
+                            showToast(response.message || 'Erreur lors de la suppression de la livraison', 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
+                    }
+                });
+            }
+        });
 
         // Initialize planning page
         document.addEventListener('DOMContentLoaded', function() {

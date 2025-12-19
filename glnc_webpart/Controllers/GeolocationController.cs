@@ -1,6 +1,7 @@
 using glnc_webpart.Models;
 using glnc_webpart.Services;
 using Microsoft.AspNetCore.Mvc;
+using static glnc_webpart.Services.TimezoneHelper;
 
 namespace glnc_webpart.Controllers
 {
@@ -46,7 +47,7 @@ namespace glnc_webpart.Controllers
             {
                 try
                 {
-                    location.DateTime = DateTime.Now;
+                    location.DateTime = TimezoneHelper.GetNewCaledoniaTime();
                     await _geolocationService.CreateDriverLocationAsync(location);
                     return Json(new { success = true, message = "Location saved successfully" });
                 }

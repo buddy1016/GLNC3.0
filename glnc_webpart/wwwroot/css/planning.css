@@ -152,20 +152,179 @@
     margin-right: 0.5rem;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Responsive Design for Planning Page */
+@media (max-width: 969px) {
+    .planning-controls {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
     .calendar-navigation {
         flex-direction: column;
         align-items: stretch;
+        gap: 0.75rem;
     }
 
     .view-buttons {
         flex-wrap: wrap;
+        width: 100%;
     }
 
     .view-buttons .btn {
         flex: 1;
         min-width: auto;
+        font-size: 0.85rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    #dateRange {
+        font-size: 0.9rem;
+        text-align: center;
+        width: 100%;
+    }
+
+    .page-container {
+        padding: 1rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    #calendar {
+        font-size: 0.85rem;
+    }
+
+    .fc-toolbar-title {
+        font-size: 1.25rem;
+    }
+
+    .fc-button {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    .fc-event-title {
+        font-size: 0.8rem;
+    }
+
+    .fc-event-time {
+        font-size: 0.7rem;
+    }
+
+    #deliveryModal .modal-body {
+        max-height: 60vh;
+        padding: 1rem;
+    }
+
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+}
+
+@media (max-width: 576px) {
+    .planning-controls {
+        padding: 0.75rem;
+    }
+
+    .page-container {
+        padding: 0.75rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.25rem;
+    }
+
+    .calendar-navigation {
+        gap: 0.5rem;
+    }
+
+    .view-buttons .btn {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.5rem;
+    }
+
+    #dateRange {
+        font-size: 0.85rem;
+    }
+
+    #calendar {
+        font-size: 0.8rem;
+    }
+
+    .fc-toolbar-title {
+        font-size: 1.1rem;
+    }
+
+    .fc-button {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .fc-event-title {
+        font-size: 0.75rem;
+    }
+
+    .fc-event-time {
+        font-size: 0.65rem;
+    }
+
+    .fc-timegrid-slot {
+        height: 2em;
+    }
+
+    #deliveryModal .modal-body {
+        max-height: 50vh;
+        padding: 0.75rem;
+    }
+
+    .modal-dialog {
+        margin: 0.25rem;
+        max-width: calc(100% - 0.5rem);
+    }
+
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .planning-controls {
+        padding: 0.5rem;
+    }
+
+    .page-container {
+        padding: 0.5rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.1rem;
+    }
+
+    .view-buttons .btn {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.4rem;
+    }
+
+    #calendar {
+        font-size: 0.75rem;
+    }
+
+    .fc-toolbar-title {
+        font-size: 1rem;
+    }
+
+    .fc-button {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
     }
 }
 

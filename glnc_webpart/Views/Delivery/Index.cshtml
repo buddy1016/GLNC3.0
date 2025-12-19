@@ -174,10 +174,6 @@
                         <label class="form-label">Poids</label>
                         <input type="number" step="0.01" class="form-control" name="Weight" id="editDeliveryWeight" required />
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Commentaire</label>
-                        <textarea class="form-control" name="Comment" id="editDeliveryComment" rows="3"></textarea>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -362,6 +358,9 @@
             $.get('@Url.Action("Get", "Delivery")', { id: id }, function(response) {
                 if (response.success) {
                     const d = response.data;
+                    // Store original delivery data to preserve fields not in form
+                    originalDeliveryData = d;
+                    
                     $('#editDeliveryId').val(d.id);
                     $('#editDeliveryClient').val(d.client);
                     $('#editDeliveryAddress').val(d.address);
@@ -372,7 +371,6 @@
                     $('#editDeliverySupplier').val(d.supplierId);
                     $('#editDeliveryTruck').val(d.truckId);
                     $('#editDeliveryWeight').val(d.weight);
-                    $('#editDeliveryComment').val(d.comment);
                     $('#editDeliveryModal').modal('show');
                 } else {
                     showToast('Échec du chargement des données de la livraison', 'error');
@@ -384,15 +382,47 @@
 
         $('#editDeliveryForm').on('submit', function(e) {
             e.preventDefault();
-            const formData = $(this).serialize();
+            
+            if (!originalDeliveryData) {
+                showToast('Erreur: Données de livraison non trouvées. Veuillez rafraîchir et réessayer.', 'error');
+                return;
+            }
+            
+            // Build JSON object from form data, preserving fields not in form
+            const deliveryData = {
+                Id: parseInt($('#editDeliveryId').val()),
+                Client: $('#editDeliveryClient').val().trim(),
+                Address: $('#editDeliveryAddress').val().trim(),
+                Contacts: $('#editDeliveryContacts').val().trim(),
+                Invoice: $('#editDeliveryInvoice').val().trim(),
+                DateTimeAppointment: new Date($('#editDeliveryAppointment').val()).toISOString(),
+                DateTimeLeave: new Date($('#editDeliveryLeave').val()).toISOString(),
+                SupplierId: parseInt($('#editDeliverySupplier').val()),
+                TruckId: parseInt($('#editDeliveryTruck').val()),
+                Weight: parseFloat($('#editDeliveryWeight').val()),
+                UserId: originalDeliveryData.userId || originalDeliveryData.UserId,
+                // Preserve fields not in form
+                DateTimeAccept: originalDeliveryData.dateTimeAccept ? new Date(originalDeliveryData.dateTimeAccept).toISOString() : null,
+                DateTimeArrival: originalDeliveryData.dateTimeArrival ? new Date(originalDeliveryData.dateTimeArrival).toISOString() : null,
+                Description: originalDeliveryData.description || null,
+                SignClient: originalDeliveryData.signClient || null,
+                SatisfactionClient: originalDeliveryData.satisfactionClient || null,
+                ReturnFlag: originalDeliveryData.returnFlag !== undefined ? originalDeliveryData.returnFlag : false,
+                Comment: originalDeliveryData.comment || '',
+                InvoiceImage: originalDeliveryData.invoiceImage || null
+            };
+            
             $.ajax({
                 url: '@Url.Action("Edit", "Delivery")',
                 type: 'POST',
-                data: formData,
+                contentType: 'application/json',
+                data: JSON.stringify(deliveryData),
                 headers: { 'RequestVerificationToken': getToken() },
                 success: function(response) {
                     if (response.success) {
                         $('#editDeliveryModal').modal('hide');
+                        // Reset original delivery data
+                        originalDeliveryData = null;
                         showToast('Livraison mise à jour avec succès!', 'success');
                         setTimeout(function() {
                             location.reload();
@@ -401,14 +431,21 @@
                         showToast(response.message || 'Échec de la mise à jour de la livraison', 'error');
                     }
                 },
-                error: function() {
-                    showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
+                error: function(xhr) {
+                    let errorMsg = 'Une erreur est survenue. Veuillez réessayer.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    showToast(errorMsg, 'error');
                 }
             });
         });
 
         // Store delivery ID for deletion
         let deliveryIdToDelete = null;
+        
+        // Store original delivery data to preserve fields not in form
+        let originalDeliveryData = null;
 
         // Delete Delivery - Show confirmation modal (using event delegation)
         $(document).on('click', '.btn-delete[data-delivery-id]', function() {

@@ -33,6 +33,7 @@
     @if (!isLoginPage)
     {
         @await Html.PartialAsync("_Header")
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
         @await Html.PartialAsync("_Sidebar")
     }
 
@@ -46,7 +47,7 @@
     }
 
     <!-- Toast Notification Container -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div class="toast-container position-fixed top-0 end-0 p-3 toast-container-fixed">
         <div id="toastContainer"></div>
     </div>
 
@@ -57,19 +58,55 @@
     @if (!isLoginPage)
     {
         <script>
-            // Sidebar Toggle - Available on all pages with state persistence
+            // Sidebar Toggle - Responsive with mobile support
             document.addEventListener('DOMContentLoaded', function() {
                 const sidebarToggle = document.getElementById('sidebarToggle');
                 const sidebar = document.getElementById('sidebar');
                 const mainContent = document.querySelector('.app-main');
                 const footer = document.querySelector('.app-footer');
+                const sidebarOverlay = document.getElementById('sidebarOverlay');
+                
+                // Check if we're on mobile (screen width <= 969px)
+                function isMobile() {
+                    return window.innerWidth <= 969;
+                }
 
-                // Check localStorage for saved sidebar state
+                // Toggle overlay
+                function toggleOverlay(show) {
+                    if (sidebarOverlay) {
+                        if (show) {
+                            sidebarOverlay.classList.add('show');
+                            document.body.style.overflow = 'hidden';
+                        } else {
+                            sidebarOverlay.classList.remove('show');
+                            document.body.style.overflow = '';
+                        }
+                    }
+                }
+
+                // Close sidebar on mobile
+                function closeSidebar() {
+                    if (sidebar) {
+                        sidebar.classList.remove('show');
+                        toggleOverlay(false);
+                    }
+                }
+
+                // Handle overlay click to close sidebar on mobile
+                if (sidebarOverlay) {
+                    sidebarOverlay.addEventListener('click', function() {
+                        if (isMobile()) {
+                            closeSidebar();
+                        }
+                    });
+                }
+
+                // Check localStorage for saved sidebar state (desktop only)
                 const savedState = localStorage.getItem('sidebarCollapsed');
                 const isCollapsed = savedState === 'true';
 
-                // Apply saved state on page load
-                if (sidebar) {
+                // Apply saved state on page load (desktop only)
+                if (sidebar && !isMobile()) {
                     if (isCollapsed) {
                         sidebar.classList.add('collapsed');
                         if (mainContent) {
@@ -79,34 +116,86 @@
                             footer.classList.add('footer-collapsed');
                         }
                     }
+                } else if (sidebar && isMobile()) {
+                    // On mobile, always start with sidebar hidden
+                    sidebar.classList.remove('show');
+                    toggleOverlay(false);
                 }
 
-                // Toggle sidebar and save state
+                // Toggle sidebar
                 if (sidebarToggle && sidebar) {
                     sidebarToggle.addEventListener('click', function() {
-                        const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
-                        
-                        if (isCurrentlyCollapsed) {
-                            // Expand sidebar
-                            sidebar.classList.remove('collapsed');
-                            if (mainContent) {
-                                mainContent.classList.remove('sidebar-collapsed');
+                        if (isMobile()) {
+                            // Mobile behavior: toggle show/hide
+                            const isCurrentlyShown = sidebar.classList.contains('show');
+                            if (isCurrentlyShown) {
+                                closeSidebar();
+                            } else {
+                                sidebar.classList.add('show');
+                                toggleOverlay(true);
                             }
-                            if (footer) {
-                                footer.classList.remove('footer-collapsed');
-                            }
-                            localStorage.setItem('sidebarCollapsed', 'false');
                         } else {
-                            // Collapse sidebar
-                            sidebar.classList.add('collapsed');
-                            if (mainContent) {
-                                mainContent.classList.add('sidebar-collapsed');
+                            // Desktop behavior: toggle collapsed/expanded
+                            const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
+                            
+                            if (isCurrentlyCollapsed) {
+                                // Expand sidebar
+                                sidebar.classList.remove('collapsed');
+                                if (mainContent) {
+                                    mainContent.classList.remove('sidebar-collapsed');
+                                }
+                                if (footer) {
+                                    footer.classList.remove('footer-collapsed');
+                                }
+                                localStorage.setItem('sidebarCollapsed', 'false');
+                            } else {
+                                // Collapse sidebar
+                                sidebar.classList.add('collapsed');
+                                if (mainContent) {
+                                    mainContent.classList.add('sidebar-collapsed');
+                                }
+                                if (footer) {
+                                    footer.classList.add('footer-collapsed');
+                                }
+                                localStorage.setItem('sidebarCollapsed', 'true');
                             }
-                            if (footer) {
-                                footer.classList.add('footer-collapsed');
-                            }
-                            localStorage.setItem('sidebarCollapsed', 'true');
                         }
+                    });
+                }
+
+                // Handle window resize
+                let resizeTimer;
+                window.addEventListener('resize', function() {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function() {
+                        if (isMobile()) {
+                            // On mobile, close sidebar if open
+                            closeSidebar();
+                        } else {
+                            // On desktop, restore saved state
+                            if (sidebar) {
+                                if (isCollapsed) {
+                                    sidebar.classList.add('collapsed');
+                                    sidebar.classList.remove('show');
+                                } else {
+                                    sidebar.classList.remove('collapsed');
+                                    sidebar.classList.remove('show');
+                                }
+                                toggleOverlay(false);
+                            }
+                        }
+                    }, 250);
+                });
+
+                // Close sidebar when clicking on a sidebar link (mobile only)
+                if (sidebar) {
+                    const sidebarLinks = sidebar.querySelectorAll('.sidebar-item');
+                    sidebarLinks.forEach(function(link) {
+                        link.addEventListener('click', function() {
+                            if (isMobile()) {
+                                setTimeout(closeSidebar, 300);
+                            }
+                        });
                     });
                 }
             });

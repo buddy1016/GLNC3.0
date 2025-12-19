@@ -273,11 +273,11 @@ namespace glnc_webpart.Controllers
                 };
 
                 await _deliveryService.CreateDeliveryAsync(newDelivery);
-                return Json(new { success = true, message = "Delivery created successfully", id = newDelivery.Id });
+                return Json(new { success = true, message = "Livraison réussie", id = newDelivery.Id });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating delivery");
+                _logger.LogError(ex, "Erreur lors de la création de la livraison");
                 return Json(new { success = false, message = ex.Message });
             }
         }
