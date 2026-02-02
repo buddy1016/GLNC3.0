@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Internal cache directory - no permissions needed -->
+    <cache-path name="camera_images" path="." />
+    <!-- External cache directory for older Android versions -->
+    <external-cache-path name="external_camera_images" path="." />
+</paths>

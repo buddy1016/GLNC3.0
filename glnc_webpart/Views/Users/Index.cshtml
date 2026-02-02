@@ -1,0 +1,354 @@
+@model List<glnc_webpart.Models.User>
+@{
+    ViewData["Title"] = "Gestion des utilisateurs";
+}
+
+<div class="page-container">
+    <div class="page-header">
+        <h1>Gestion des utilisateurs</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            <i class="bi bi-plus-circle"></i> 
+        </button>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-striped table-hover table-centered" id="usersTable">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Rôle</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@user.Name</td>
+                        <td>@(user.Role == 1 ? "Chauffeur" : "Administrateur")</td>
+                        <td>
+                            <button class="btn btn-icon btn-edit" onclick="editUser(@user.Id)" title="Modifier l'utilisateur">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-icon btn-delete" onclick="deleteUser(@user.Id, @Html.Raw(Json.Serialize(user.Name)))" title="Supprimer l'utilisateur">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Créer un nouvel utilisateur</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createUserForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nom</label>
+                        <input type="text" class="form-control" name="Name" required maxlength="30" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mot de passe (5 chiffres)</label>
+                        <input type="text" class="form-control" name="Password" required maxlength="5" pattern="[0-9]{5}" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Rôle</label>
+                        <select class="form-select" name="Role" required>
+                            <option value="1">Chauffeur</option>
+                            <option value="2">Administrateur</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifier l'utilisateur</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editUserForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="editUserId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nom</label>
+                        <input type="text" class="form-control" name="Name" id="editUserName" required maxlength="30" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mot de passe (5 chiffres - laisser vide pour conserver le mot de passe actuel)</label>
+                        <input type="text" class="form-control" name="Password" id="editUserPassword" maxlength="5" pattern="[0-9]{5}" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Rôle</label>
+                        <select class="form-select" name="Role" id="editUserRole" required>
+                            <option value="1">Chauffeur</option>
+                            <option value="2">Administrateur</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Confirmation Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation de suppression</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer cet utilisateur? Cette action ne peut pas être annulée.</p>
+                <p class="text-muted mb-0"><strong>Nom de l'utilisateur:</strong> <span id="deleteUserName"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Supprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Toast Notification Function
+        function showToast(message, type = 'success') {
+            const toastContainer = $('#toastContainer');
+            const toastId = 'toast-' + Date.now();
+            
+            // Define toast configuration based on type
+            const toastConfig = {
+                success: {
+                    bgClass: 'bg-success',
+                    icon: 'bi-check-circle-fill',
+                    title: 'Succès'
+                },
+                error: {
+                    bgClass: 'bg-danger',
+                    icon: 'bi-x-circle-fill',
+                    title: 'Erreur'
+                },
+                warning: {
+                    bgClass: 'bg-warning',
+                    icon: 'bi-exclamation-triangle-fill',
+                    title: 'Avertissement'
+                },
+                info: {
+                    bgClass: 'bg-info',
+                    icon: 'bi-info-circle-fill',
+                    title: 'Information'
+                }
+            };
+            
+            const config = toastConfig[type] || toastConfig.success;
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-white ${config.bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="bi ${config.icon} me-2"></i>
+                            <strong>${config.title}:</strong> ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.append(toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: 5000
+            });
+            toast.show();
+            
+            // Remove toast element after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+
+        // Get antiforgery token
+        function getToken() {
+            return $('input[name="__RequestVerificationToken"]').val();
+        }
+
+        // Create User
+        $('#createUserForm').on('submit', function(e) {
+            e.preventDefault();
+            const formData = $(this).serialize();
+            $.ajax({
+                url: '@Url.Action("Create", "Users")',
+                type: 'POST',
+                data: formData,
+                headers: {
+                    'RequestVerificationToken': getToken()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#createUserModal').modal('hide');
+                        $('#createUserForm')[0].reset();
+                        showToast('Utilisateur créé avec succès!', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(response.message || 'Échec de la création de l\'utilisateur', 'error');
+                    }
+                },
+                error: function() {
+                    showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
+                }
+            });
+        });
+
+        // Store user data for modal shown event
+        let currentEditUser = null;
+
+        // Edit User
+        function editUser(id) {
+            $.get('@Url.Action("Get", "Users")', { id: id }, function(response) {
+                if (response.success) {
+                    const user = response.data;
+                    currentEditUser = user;
+                    
+                    $('#editUserId').val(user.id || user.Id);
+                    $('#editUserName').val(user.name || user.Name);
+                    $('#editUserPassword').val('');
+                    
+                    // Show modal - role will be set in the shown event handler
+                    $('#editUserModal').modal('show');
+                } else {
+                    showToast('Échec du chargement des données de l\'utilisateur', 'error');
+                }
+            }).fail(function() {
+                showToast('Une erreur est survenue lors du chargement des données de l\'utilisateur', 'error');
+            });
+        }
+
+        // Handle modal shown event to set role value
+        $('#editUserModal').on('shown.bs.modal', function() {
+            if (currentEditUser) {
+                // Get role value - handle both camelCase and PascalCase
+                const roleValue = currentEditUser.role || currentEditUser.Role;
+                // Convert to string to match select option values ("1" or "2")
+                const roleString = String(roleValue);
+                
+                // Set the role dropdown value
+                $('#editUserRole').val(roleString);
+                
+                // Clear the stored user data
+                currentEditUser = null;
+            }
+        });
+
+        $('#editUserForm').on('submit', function(e) {
+            e.preventDefault();
+            const formData = $(this).serialize();
+            $.ajax({
+                url: '@Url.Action("Edit", "Users")',
+                type: 'POST',
+                data: formData,
+                headers: {
+                    'RequestVerificationToken': getToken()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#editUserModal').modal('hide');
+                        showToast('Utilisateur mis à jour avec succès!', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(response.message || 'Échec de la mise à jour de l\'utilisateur', 'error');
+                    }
+                },
+                error: function() {
+                    showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
+                }
+            });
+        });
+
+        // Store user ID for deletion
+        let userIdToDelete = null;
+
+        // Delete User - Show confirmation modal
+        function deleteUser(id, userName) {
+            userIdToDelete = id;
+            $('#deleteUserName').text(userName);
+            $('#deleteUserModal').modal('show');
+        }
+
+        // Confirm Delete - Execute deletion
+        $('#confirmDeleteBtn').on('click', function() {
+            if (userIdToDelete) {
+                $.ajax({
+                    url: '@Url.Action("Delete", "Users")',
+                    type: 'POST',
+                    data: { 
+                        id: userIdToDelete,
+                        __RequestVerificationToken: getToken()
+                    },
+                    success: function(response) {
+                        $('#deleteUserModal').modal('hide');
+                        if (response.success) {
+                            showToast('Utilisateur supprimé avec succès!', 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showToast(response.message || 'Échec de la suppression de l\'utilisateur', 'error');
+                        }
+                        userIdToDelete = null;
+                    },
+                    error: function() {
+                        $('#deleteUserModal').modal('hide');
+                        showToast('Une erreur est survenue. Veuillez réessayer.', 'error');
+                        userIdToDelete = null;
+                    }
+                });
+            }
+        });
+
+        // Clear stored user ID when modal is closed
+        $('#deleteUserModal').on('hidden.bs.modal', function() {
+            userIdToDelete = null;
+        });
+
+        // Password input - only numbers
+        $('input[name="Password"]').on('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Initialize pagination
+        $(document).ready(function() {
+            initPagination('#usersTable', 10);
+        });
+    </script>
+}
+

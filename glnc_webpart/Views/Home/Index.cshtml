@@ -1,0 +1,192 @@
+@using glnc_webpart.Services
+@inject IDeliveryService DeliveryService
+@inject ITruckService TruckService
+@{
+    ViewData["Title"] = "Dashboard";
+    var deliveries = await DeliveryService.GetAllDeliveriesAsync();
+    var trucks = await TruckService.GetAllTrucksAsync();
+    
+    var totalDeliveries = deliveries.Count;
+    var completedDeliveries = deliveries.Count(d => d.DateTimeArrival.HasValue);
+    var returnDeliveries = deliveries.Count(d => d.ReturnFlag);
+    var pendingDeliveries = deliveries.Count(d => !d.DateTimeAccept.HasValue && !d.ReturnFlag);
+    var activeTrucks = trucks.Count;
+    
+    var recentDeliveries = deliveries.OrderByDescending(d => d.DateTimeAppointment).Take(3).ToList();
+
+    // Build recent activities from delivery timeline (newest first, top 5)
+    var activities = deliveries.SelectMany(d => new[]
+        {
+            new { Time = d.DateTimeArrival, Text = $"Livraison effectuée ({d.Client})", Icon = "bi-check-circle", Color = "activity-green" },
+            new { Time = d.DateTimeAccept, Text = $"La livraison a commencé ({d.Client})", Icon = "bi-clock", Color = "activity-yellow" },
+            new { Time = (DateTime?)d.DateTimeLeave, Text = $"Livraison créée ({d.Client})", Icon = "bi-box-seam", Color = "activity-blue" }
+        })
+        .Where(a => a.Time.HasValue)
+        .OrderByDescending(a => a.Time.Value)
+        .Take(5)
+        .ToList();
+}
+
+<div class="dashboard-page">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Tableau de bord</h1>
+        <p class="dashboard-subtitle">Bienvenue dans le système de gestion des livraisons</p>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card kpi-blue">
+            <div class="kpi-icon">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-value">@totalDeliveries</div>
+                <div class="kpi-label">TOTAL DES LIVRAISONS</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-green">
+            <div class="kpi-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-value">@completedDeliveries</div>
+                <div class="kpi-label">COMPLÉTÉES</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-yellow">
+            <div class="kpi-icon">
+                <i class="bi bi-arrow-return-left"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-value">@pendingDeliveries</div>
+                <div class="kpi-label">EN ATTENTE</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-red">
+            <div class="kpi-icon">
+                <i class="bi bi-truck"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-value">@activeTrucks</div>
+                <div class="kpi-label">CAMIONS ACTIFS</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Activities Row -->
+    <div class="dashboard-row">
+        <!-- Delivery Status Overview Chart -->
+        <div class="chart-card">
+            <div class="card-header">
+                <h3 class="card-title">Aperçu des statuts des livraisons</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="deliveryChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="activities-card">
+            <div class="card-header">
+                <h3 class="card-title">Activités récentes</h3>
+            </div>
+            <div class="card-body">
+                <div class="activity-list">
+                    @if (activities.Count == 0)
+                    {
+                        <div class="text-muted">Aucune activité récente.</div>
+                    }
+                    else
+                    {
+                        foreach (var activity in activities)
+                        {
+                            <div class="activity-item">
+                                <div class="activity-icon @activity.Color">
+                                    <i class="bi @activity.Icon"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">@activity.Text</div>
+                                    <div class="activity-time">@activity.Time?.ToString("yyyy-MM-dd HH:mm")</div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Deliveries Table -->
+    <div class="deliveries-card">
+        <div class="card-header">
+            <h3 class="card-title">Livraisons récentes</h3>
+            <a asp-controller="Delivery" asp-action="Index" class="btn-view-all">Voir toutes</a>
+        </div>
+        <div class="card-body">
+            <table class="deliveries-table table-centered">
+                <thead>
+                    <tr>
+                        <th>CLIENT</th>
+                        <th>ADRESSE</th>
+                        <th>STATUT</th>
+                        <th>CONDUCTEUR</th>
+                        <th>DATE DE RENDEZ-VOUS</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var delivery in recentDeliveries)
+                    {
+                        <tr>
+                            <td>@delivery.Client</td>
+                            <td>@delivery.Address</td>
+                            <td>
+                                @if (delivery.DateTimeArrival.HasValue)
+                                {
+                                    <span class="status-badge status-completed">Complété</span>
+                                }
+                                else if (delivery.DateTimeAccept.HasValue)
+                                {
+                                    <span class="status-badge status-in-progress">En cours</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-pending">En attente</span>
+                                }
+                            </td>
+                            <td>@(delivery.User?.Name ?? "-")</td>
+                            <td>@delivery.DateTimeAppointment.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                <a asp-controller="Delivery" asp-action="Details" asp-route-id="@delivery.Id" class="action-icon">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Pass delivery data to JavaScript
+        const deliveryData = {
+            completed: @completedDeliveries,
+            returned: @returnDeliveries,
+            pending: @pendingDeliveries
+        };
+    </script>
+    <script src="~/js/dashboard.js"></script>
+    <script>
+        // Initialize pagination for deliveries table
+        $(document).ready(function() {
+            initPagination('.deliveries-table', 10);
+        });
+    </script>
+}
