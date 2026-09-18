@@ -20,9 +20,9 @@ namespace glnc_webpart.Services
             {
                 var smtpHost = _configuration["Smtp:Host"] ?? "mail.ncmail.nc";
                 var smtpPort = int.Parse(_configuration["Smtp:Port"] ?? "587");
-                var smtpUsername = _configuration["Smtp:Username"] ?? "glnc@rfid.nc";
-                var smtpPassword = _configuration["Smtp:Password"] ?? "Area98+Hello";
-                var fromEmail = _configuration["Smtp:FromEmail"] ?? "glnc@rfid.nc";
+                var smtpUsername = _configuration["Smtp:Username"] ?? "noreply_glnc-2ts@clinotag.com";
+                var smtpPassword = _configuration["Smtp:Password"] ?? "Paralyser-Partage84,";
+                var fromEmail = _configuration["Smtp:FromEmail"] ?? "noreply_glnc-2ts@clinotag.com";
 
                 using (var smtpClient = new SmtpClient(smtpHost, smtpPort))
                 {
